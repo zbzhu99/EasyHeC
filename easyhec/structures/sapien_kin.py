@@ -3,7 +3,6 @@ import sapien.core as sapien
 
 
 class SAPIENKinematicsModelStandalone:
-
     def __init__(self, urdf_path):
         self.engine = sapien.Engine()
 
@@ -37,9 +36,11 @@ class SAPIENKinematicsModelStandalone:
 
 def main():
     sk = SAPIENKinematicsModelStandalone("data/xarm7.urdf")
-    qpos = np.loadtxt("/home/linghao/PycharmProjects/cam_robot_calib/data/realsense/20230124_092547/pose_eb_000000.txt")
+    qpos = np.loadtxt(
+        "/home/linghao/PycharmProjects/cam_robot_calib/data/realsense/20230124_092547/pose_eb_000000.txt"
+    )
     # print(sk.compute_forward_kinematics(qpos))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

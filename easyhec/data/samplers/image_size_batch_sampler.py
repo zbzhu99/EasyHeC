@@ -2,7 +2,9 @@ import numpy as np
 
 
 class ImageSizeBatchSampler:
-    def __init__(self, sampler, batch_size, drop_last, min_size=600, max_size=800, size_int=8):
+    def __init__(
+        self, sampler, batch_size, drop_last, min_size=600, max_size=800, size_int=8
+    ):
         self.sampler = sampler
         self.batch_size = batch_size
         self.drop_last = drop_last

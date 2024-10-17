@@ -11,9 +11,9 @@ def build_transforms(cfg, is_train=True):
 
 
 def build_transform(t):
-    if t['name'] == 'ClipRange':
-        return ClipRange(t['range'])
-    elif t['name'] == 'CenterCrop':
-        return CenterCrop(t['width'], t['height'])
+    if t["name"] == "ClipRange":
+        return ClipRange(t["range"])
+    elif t["name"] == "CenterCrop":
+        return CenterCrop(t["width"], t["height"])
     else:
         raise NotImplementedError()

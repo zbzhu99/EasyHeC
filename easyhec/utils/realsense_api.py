@@ -22,7 +22,7 @@ class RealSenseAPI:
 
         found_rgb = False
         for s in device.sensors:
-            if s.get_info(rs.camera_info.name) == 'RGB Camera':
+            if s.get_info(rs.camera_info.name) == "RGB Camera":
                 found_rgb = True
                 break
         if not found_rgb:
@@ -31,7 +31,7 @@ class RealSenseAPI:
 
         config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
 
-        if device_product_line == 'L500':
+        if device_product_line == "L500":
             config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, 30)
         else:
             config.enable_stream(rs.stream.color, 1920, 1080, rs.format.bgr8, 30)
@@ -47,14 +47,28 @@ class RealSenseAPI:
 
     @staticmethod
     def capture_data():
-        if RealSenseAPI.pipeline is None or RealSenseAPI.profile is None or RealSenseAPI.align is None:
-            RealSenseAPI.pipeline, RealSenseAPI.profile, RealSenseAPI.align = RealSenseAPI.setup_realsense()
+        if (
+            RealSenseAPI.pipeline is None
+            or RealSenseAPI.profile is None
+            or RealSenseAPI.align is None
+        ):
+            (
+                RealSenseAPI.pipeline,
+                RealSenseAPI.profile,
+                RealSenseAPI.align,
+            ) = RealSenseAPI.setup_realsense()
 
-        pipeline, profile, align = RealSenseAPI.pipeline, RealSenseAPI.profile, RealSenseAPI.align
-        intr = profile.get_stream(rs.stream.color).as_video_stream_profile().get_intrinsics()
-        K = np.array([[intr.fx, 0, intr.ppx],
-                      [0, intr.fy, intr.ppy],
-                      [0, 0, 1]])
+        pipeline, profile, align = (
+            RealSenseAPI.pipeline,
+            RealSenseAPI.profile,
+            RealSenseAPI.align,
+        )
+        intr = (
+            profile.get_stream(rs.stream.color)
+            .as_video_stream_profile()
+            .get_intrinsics()
+        )
+        K = np.array([[intr.fx, 0, intr.ppx], [0, intr.fy, intr.ppy], [0, 0, 1]])
         while True:
             frames = pipeline.wait_for_frames()
             frames = align.process(frames)

@@ -11,16 +11,20 @@ _C.backup_src = True
 _C.sim_mask_data = CN()
 _C.sim_mask_data.width = 1280  # width of the rendered image
 _C.sim_mask_data.height = 720  # height of the rendered image
-_C.sim_mask_data.K = [[9.068051757812500000e+02, 0.000000000000000000e+00, 6.501978759765625000e+02],
-                      [0.000000000000000000e+00, 9.066802978515625000e+02, 3.677142944335937500e+02],
-                      [0.000000000000000000e+00, 0.000000000000000000e+00, 1.000000000000000000e+00]]
+_C.sim_mask_data.K = [
+    [9.068051757812500000e02, 0.000000000000000000e00, 6.501978759765625000e02],
+    [0.000000000000000000e00, 9.066802978515625000e02, 3.677142944335937500e02],
+    [0.000000000000000000e00, 0.000000000000000000e00, 1.000000000000000000e00],
+]
 _C.sim_mask_data.outdir = ""  # output directory of the rendered data
 _C.sim_mask_data.random_qpos_number = 100000  # number of random qpos to sample
 _C.sim_mask_data.envmaps = []  # list of envmap names
 _C.sim_mask_data.n_point_light = 10
 _C.sim_mask_data.sample_dof = 7  # number of degree of freedom to sample, should be less than the dof of the robot.
 _C.sim_mask_data.urdf_path = "assets/xarm7.urdf"  # path to the urdf file, used for rendering and collision checking
-_C.sim_mask_data.srdf_path = "assets/xarm7.urdf"  # path to the srdf file, used for collision checking
+_C.sim_mask_data.srdf_path = (
+    "assets/xarm7.urdf"  # path to the srdf file, used for collision checking
+)
 _C.sim_mask_data.move_group = ""  # move group name, used for collision checking
 _C.sim_mask_data.add_desk_cube = CN()
 _C.sim_mask_data.add_desk_cube.enable = True
@@ -29,9 +33,11 @@ _C.sim_mask_data.add_desk_cube.pose = [-0.4, -0.1, -0.5]
 _C.sim_mask_data.add_desk_cube.color = [0, 0, 0]
 
 _C.sim_pvnet_data = CN()
-_C.sim_pvnet_data.K = [[9.068051757812500000e+02, 0.000000000000000000e+00, 6.501978759765625000e+02],
-                       [0.000000000000000000e+00, 9.066802978515625000e+02, 3.677142944335937500e+02],
-                       [0.000000000000000000e+00, 0.000000000000000000e+00, 1.000000000000000000e+00]]
+_C.sim_pvnet_data.K = [
+    [9.068051757812500000e02, 0.000000000000000000e00, 6.501978759765625000e02],
+    [0.000000000000000000e00, 9.066802978515625000e02, 3.677142944335937500e02],
+    [0.000000000000000000e00, 0.000000000000000000e00, 1.000000000000000000e00],
+]
 _C.sim_pvnet_data.width = 1280  # width of the rendered image
 _C.sim_pvnet_data.height = 720  # height of the rendered image
 _C.sim_pvnet_data.min_dist = 0.5
@@ -66,14 +72,16 @@ _C.model.device = "cuda"
 _C.model.rbsolver = CN()
 _C.model.rbsolver.init_Tc_c2b = []  # eye to hand version
 _C.model.rbsolver.lrs = []
-_C.model.rbsolver.mesh_paths = ["assets/xarm_description/meshes/xarm7/visual/link0.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link1.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link2.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link3.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link4.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link5.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link6.STL",
-                                "assets/xarm_description/meshes/xarm7/visual/link7.STL", ]
+_C.model.rbsolver.mesh_paths = [
+    "assets/xarm_description/meshes/xarm7/visual/link0.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link1.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link2.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link3.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link4.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link5.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link6.STL",
+    "assets/xarm_description/meshes/xarm7/visual/link7.STL",
+]
 _C.model.rbsolver.H = 720
 _C.model.rbsolver.W = 1280
 
@@ -87,9 +95,11 @@ _C.model.space_explorer.n_sample_qposes = 1000  # for random
 _C.model.space_explorer.sample_dof = 6
 _C.model.space_explorer.width = 1280
 _C.model.space_explorer.height = 720
-_C.model.space_explorer.K = [[9.068051757812500000e+02, 0.000000000000000000e+00, 6.501978759765625000e+02],
-                             [0.000000000000000000e+00, 9.066802978515625000e+02, 3.677142944335937500e+02],
-                             [0.000000000000000000e+00, 0.000000000000000000e+00, 1.000000000000000000e+00]]
+_C.model.space_explorer.K = [
+    [9.068051757812500000e02, 0.000000000000000000e00, 6.501978759765625000e02],
+    [0.000000000000000000e00, 9.066802978515625000e02, 3.677142944335937500e02],
+    [0.000000000000000000e00, 0.000000000000000000e00, 1.000000000000000000e00],
+]
 _C.model.space_explorer.urdf_path = ""
 _C.model.space_explorer.srdf_path = ""
 _C.model.space_explorer.move_group = ""
@@ -109,7 +119,7 @@ _C.model.space_explorer.collision_check.planning_time = 1.0
 
 _C.model.rbsolver_iter = CN()
 _C.model.rbsolver_iter.data_dir = ""
-_C.model.rbsolver_iter.start_qpos = [0, 0, 0, 0, 0, 0, 0]
+_C.model.rbsolver_iter.start_qpos = [0, -0.349, -0.559, 0, 0.873, 0.0, 0.0]
 _C.model.rbsolver_iter.start_index = 0  # for data pool
 
 _C.model.rbsolver_iter.use_realarm = CN()
@@ -122,10 +132,14 @@ _C.model.rbsolver_iter.use_realarm.timestep = 0.1
 _C.model.rbsolver_iter.use_realarm.safety_factor = 3
 _C.model.rbsolver_iter.use_realarm.use_sam = CN()
 _C.model.rbsolver_iter.use_realarm.use_sam.enable = False  # use SAM to predict mask
-_C.model.rbsolver_iter.use_realarm.use_sam.sam_checkpoint = "models/sam/sam_vit_h_4b8939.pth"
+_C.model.rbsolver_iter.use_realarm.use_sam.sam_checkpoint = (
+    "models/sam/sam_vit_h_4b8939.pth"
+)
 _C.model.rbsolver_iter.use_realarm.use_sam.drawer = "point"
 
-_C.model.rbsolver_iter.pointrend_cfg_file = "configs/InstanceSegmentation/pointrend_rcnn_R_50_FPN_3x_xarm.yaml"
+_C.model.rbsolver_iter.pointrend_cfg_file = (
+    "configs/InstanceSegmentation/pointrend_rcnn_R_50_FPN_3x_xarm.yaml"
+)
 _C.model.rbsolver_iter.pointrend_model_weight = "output/model_0099999.pth"
 
 _C.solver = CN()
@@ -147,20 +161,20 @@ _C.solver.num_iters = 10000
 _C.solver.min_factor = 0.1
 _C.solver.log_interval = 1
 
-_C.solver.optimizer = 'Adam'
-_C.solver.scheduler = 'ConstantScheduler'
+_C.solver.optimizer = "Adam"
+_C.solver.scheduler = "ConstantScheduler"
 _C.solver.scheduler_decay_thresh = 0.00005
 _C.solver.do_grad_clip = False
-_C.solver.grad_clip_type = 'norm'  # norm or value
+_C.solver.grad_clip_type = "norm"  # norm or value
 _C.solver.grad_clip = 1.0
 _C.solver.ds_len = -1
 _C.solver.batch_size = 1
-_C.solver.loss_function = ''
+_C.solver.loss_function = ""
 ####save ckpt configs#####
 _C.solver.save_min_loss = 20.0
 _C.solver.save_every = False
 _C.solver.save_freq = 1
-_C.solver.save_mode = 'epoch'  # epoch or iteration
+_C.solver.save_mode = "epoch"  # epoch or iteration
 _C.solver.val_freq = 1
 _C.solver.save_last_only = False
 _C.solver.empty_cache = True
@@ -176,7 +190,7 @@ _C.solver.save_scheduler = True
 
 _C.dataloader = CN()
 _C.dataloader.num_workers = 0
-_C.dataloader.collator = 'DefaultBatchCollator'
+_C.dataloader.collator = "DefaultBatchCollator"
 _C.dataloader.pin_memory = False
 
 _C.datasets = CN()
@@ -192,7 +206,7 @@ _C.paths_catalog = os.path.join(os.path.dirname(__file__), "paths_catalog.py")
 _C.test = CN()
 _C.test.batch_size = 1
 _C.test.evaluators = []
-_C.test.visualizer = ''
+_C.test.visualizer = ""
 _C.test.force_recompute = True
 _C.test.do_evaluation = False
 _C.test.do_visualization = False

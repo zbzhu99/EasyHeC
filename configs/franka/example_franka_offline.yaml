@@ -44,4 +44,3 @@ dataloader:
   pin_memory: True
 test:
   batch_size: 100
-

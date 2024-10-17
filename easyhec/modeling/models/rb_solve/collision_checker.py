@@ -2,9 +2,9 @@ import numpy as np
 import sapien.core as sapien
 import mplib
 
+
 class CollisionChecker:
     def __init__(self, cfg):
-
         urdf_path = cfg.urdf_path
         srdf_path = cfg.srdf_path
         move_group = cfg.move_group
@@ -26,8 +26,9 @@ class CollisionChecker:
             user_link_names=link_names,
             user_joint_names=joint_names,
             move_group=move_group,
-            joint_vel_limits=np.ones(7),
-            joint_acc_limits=np.ones(7))
+            joint_vel_limits=np.ones(6),
+            joint_acc_limits=np.ones(6),
+        )
 
     def add_point_cloud(self, point_cloud):
         """
@@ -47,22 +48,27 @@ class CollisionChecker:
         # result = self.planner.plan_screw(pose, self.robot.get_qpos(), time_step=1 / 250,
         #                                  use_point_cloud=True)
         # if result['status'] != "Success":
-        result = self.planner.plan(pose, self.robot.get_qpos(), time_step=1 / 250,
-                                   use_point_cloud=True)
-        if result['status'] != "Success":
+        result = self.planner.plan(
+            pose, self.robot.get_qpos(), time_step=1 / 250, use_point_cloud=True
+        )
+        if result["status"] != "Success":
             # print(result['status'])
             return -1, None
         # self.follow_path(result)
         return 0, result
 
-    def move_to_qpos(self, target_qpos, mask=[],
-                     time_step=0.1,
-                     rrt_range=0.1,
-                     planning_time=1,
-                     fix_joint_limits=True,
-                     use_point_cloud=False,
-                     use_attach=False,
-                     verbose=False):
+    def move_to_qpos(
+        self,
+        target_qpos,
+        mask=[],
+        time_step=0.1,
+        rrt_range=0.1,
+        planning_time=1,
+        fix_joint_limits=True,
+        use_point_cloud=False,
+        use_attach=False,
+        verbose=False,
+    ):
         target_qpos = np.array(target_qpos)
         current_qpos = self.robot.get_qpos()
         self.planner.planning_world.set_use_point_cloud(use_point_cloud)
@@ -79,7 +85,9 @@ class CollisionChecker:
         if len(collisions) != 0:
             print("Invalid start state!")
             for collision in collisions:
-                print("%s and %s collide!" % (collision.link_name1, collision.link_name2))
+                print(
+                    "%s and %s collide!" % (collision.link_name1, collision.link_name2)
+                )
 
         idx = self.planner.move_group_joint_indices
 

@@ -1,4 +1,1 @@
-robot_mapping = [
-    "Franka",
-    "Xarm"
-]
+robot_mapping = ["Franka", "Xarm"]

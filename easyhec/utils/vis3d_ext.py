@@ -27,23 +27,27 @@ from wis3d import Wis3D
 class Vis3D(Wis3D):
     # ensure out_folder will be deleted once only when program starts.
     has_removed = []
-    default_xyz_pattern = ('x', 'y', 'z')
+    default_xyz_pattern = ("x", "y", "z")
     sequence_ids = {}
-    default_out_folder = 'dbg'
+    default_out_folder = "dbg"
     default_colors = {
-        'orange': [249, 209, 22],
-        'pink': [255, 63, 243],
+        "orange": [249, 209, 22],
+        "pink": [255, 63, 243],
         # 'green': [0, 255, 72],
-        'green': [0, 255, 0],
-        'blue': [2, 83, 255]
+        "green": [0, 255, 0],
+        "blue": [2, 83, 255],
     }
     _xarm_sk = None
     _franka_sk = None
 
-    def __init__(self, xyz_pattern=None, out_folder='dbg',
-                 sequence='sequence',
-                 auto_increase=True,
-                 enable: bool = True):
+    def __init__(
+        self,
+        xyz_pattern=None,
+        out_folder="dbg",
+        sequence="sequence",
+        auto_increase=True,
+        enable: bool = True,
+    ):
         assert enable in [True, False]
         self.enable = enable and get_rank() == 0
         # loguru.logger.info(f'{get_rank()},enable,{self.enable}')
@@ -53,11 +57,13 @@ class Vis3D(Wis3D):
             # if out_folder is None:
             #     out_folder = Vis3D.default_out_folder
             if not os.path.isabs(out_folder):
-                seq_out_folder = os.path.join(
-                    os.getcwd(), out_folder, sequence)
+                seq_out_folder = os.path.join(os.getcwd(), out_folder, sequence)
             else:
                 seq_out_folder = out_folder
-            if os.path.exists(seq_out_folder) and seq_out_folder not in Vis3D.has_removed:
+            if (
+                os.path.exists(seq_out_folder)
+                and seq_out_folder not in Vis3D.has_removed
+            ):
                 shutil.rmtree(seq_out_folder)
                 Vis3D.has_removed.append(seq_out_folder)
             super().__init__(out_folder, sequence, xyz_pattern)
@@ -71,7 +77,7 @@ class Vis3D(Wis3D):
                 scene_id = Vis3D.sequence_ids[seq_out_folder]
             else:
                 scene_id = 0
-            print(magenta(f'Set up Vis3D for {sequence}: {scene_id}'))
+            print(magenta(f"Set up Vis3D for {sequence}: {scene_id}"))
             # self.set_scene_id(scene_id)
             super().set_scene_id(scene_id)
             self.plane_model = None
@@ -84,7 +90,7 @@ class Vis3D(Wis3D):
             _, idxs = random_choice(points, sample_size, dim=0)
             points = points[idxs]
             sdf = sdf[idxs]
-        cmap = get_cmap('jet')
+        cmap = get_cmap("jet")
         assert truncation >= 0
         sdf = np.clip(to_array(sdf), a_min=-truncation, a_max=truncation)
         # colors = cmap(sdf)[:, :3]
@@ -125,34 +131,56 @@ class Vis3D(Wis3D):
 
         self.add_lines(rays_o + rays_d * min, rays_o + rays_d * max, name=name)
 
-    def add_3d_matching(self, points1, points2, matching,
-                        sample=1.0, colors=None, name=None, cover_start_end=True):
+    def add_3d_matching(
+        self,
+        points1,
+        points2,
+        matching,
+        sample=1.0,
+        colors=None,
+        name=None,
+        cover_start_end=True,
+    ):
         if not self.enable:
             return
         if np.size(points1) == 0:
             return
-        perm = np.random.choice(np.arange(matching.shape[0]),
-                                int(matching.shape[0] * sample),
-                                replace=False)
+        perm = np.random.choice(
+            np.arange(matching.shape[0]), int(matching.shape[0] * sample), replace=False
+        )
         matching = matching[perm]
         pt1s = points1[matching[:, 0]]
         pt2s = points2[matching[:, 1]]
         if isinstance(colors, str):
-            colors = np.array(self.default_colors[colors])[None].repeat(
-                matching.shape[0], axis=0).astype(np.uint8)
+            colors = (
+                np.array(self.default_colors[colors])[None]
+                .repeat(matching.shape[0], axis=0)
+                .astype(np.uint8)
+            )
         self.add_lines(pt1s, pt2s, colors=colors, name=name)
 
-    def add_3d_matching_with_scores(self, points1, points2, matching, scores, sample=1.0, name=None):
+    def add_3d_matching_with_scores(
+        self, points1, points2, matching, scores, sample=1.0, name=None
+    ):
         if not self.enable:
             return
         scores = to_array(scores)
-        cmap = get_cmap('jet')
+        cmap = get_cmap("jet")
         scores = -np.log(1 - scores + 1e-6)
         colors = cmap(scores)[:, :3]
         colors = (colors * 255).astype(np.uint8)
         self.add_3d_matching(points1, points2, matching, sample, colors, name)
 
-    def add_flow_3d(self, pts0, flow_3d, valid=None, min_percentile=0, max_percentile=99, sample=1.0, name=None):
+    def add_flow_3d(
+        self,
+        pts0,
+        flow_3d,
+        valid=None,
+        min_percentile=0,
+        max_percentile=99,
+        sample=1.0,
+        name=None,
+    ):
         if not self.enable:
             return
         flow_3d = to_array(flow_3d)
@@ -186,8 +214,9 @@ class Vis3D(Wis3D):
         sx = xmax - xmin
         sy = ymax - ymin
         sz = zmax - zmin
-        self.add_boxes(np.array([x, y, z]), np.array(
-            [0, 0, 0]), np.array([sx, sy, sz]), name=name)
+        self.add_boxes(
+            np.array([x, y, z]), np.array([0, 0, 0]), np.array([sx, sy, sz]), name=name
+        )
 
     def add_box_by_bounds(self, bounds):
         """
@@ -207,9 +236,18 @@ class Vis3D(Wis3D):
             return
         super().add_boxes(positions, rotations, scales, name, label)
 
-    def add_point_cloud(self, points, colors=None, name=None, sample=1.0,
-                        remove_plane=False, remove_plane_distance_thresh=0.005, remove_plane_cache_model=True,
-                        max_z=100000.0, min_norm=0.0):
+    def add_point_cloud(
+        self,
+        points,
+        colors=None,
+        name=None,
+        sample=1.0,
+        remove_plane=False,
+        remove_plane_distance_thresh=0.005,
+        remove_plane_cache_model=True,
+        max_z=100000.0,
+        min_norm=0.0,
+    ):
         if not self.enable:
             return
         points = to_array(points)
@@ -247,8 +285,11 @@ class Vis3D(Wis3D):
                 colors = colors[keep]
         if remove_plane:
             from .utils_3d import open3d_plane_segment_api, point_plane_distance_api
+
             if not remove_plane_cache_model or self.plane_model is None:
-                plane_model, inliers = open3d_plane_segment_api(points, remove_plane_distance_thresh)
+                plane_model, inliers = open3d_plane_segment_api(
+                    points, remove_plane_distance_thresh
+                )
                 keep = np.ones([points.shape[0]], dtype=bool)
                 keep[inliers] = 0
             else:
@@ -275,12 +316,13 @@ class Vis3D(Wis3D):
         if not self.enable:
             return
         if self.auto_increase:
-            warnings.warn(
-                "Auto-increase in ON. You should not set_scene_id manually.")
+            warnings.warn("Auto-increase in ON. You should not set_scene_id manually.")
         super().set_scene_id(id)
-        self.add_point_cloud(1000 * torch.ones([1, 3]), name='dummy')
+        self.add_point_cloud(1000 * torch.ones([1, 3]), name="dummy")
 
-    def add_camera_trajectory(self, poses: Union[np.ndarray, torch.Tensor], *, name: str = None) -> None:
+    def add_camera_trajectory(
+        self, poses: Union[np.ndarray, torch.Tensor], *, name: str = None
+    ) -> None:
         """
         Add a camera trajectory
 
@@ -300,15 +342,15 @@ class Vis3D(Wis3D):
         eulers = []
         positions = poses[:, :3, 3].reshape((-1, 3))
         for pose in poses:
-            trans_euler = euler.mat2euler(pose[:3, :3], 'rxyz')
+            trans_euler = euler.mat2euler(pose[:3, :3], "rxyz")
             # trans_euler = euler.mat2euler(pose[:3, :3])
             eulers.append(trans_euler)
 
         # print("eulers: ", eulers)
         # print("euler: ", eulers)
 
-        filename = self.__get_export_file_name('camera_trajectory', name)
-        with open(filename, 'w') as f:
+        filename = self.__get_export_file_name("camera_trajectory", name)
+        with open(filename, "w") as f:
             f.write(json.dumps(dict(eulers=eulers, positions=positions.tolist())))
 
     def add_image(self, image, name=None):
@@ -347,11 +389,16 @@ class Vis3D(Wis3D):
         if not self.enable:
             return
         from easyhec.structures.deformation_graph import DeformationGraph
+
         assert isinstance(graph, DeformationGraph)
         graph = graph.numpy()
-        edges = np.stack([np.repeat(np.arange(graph.graph_edges.shape[0])[:, None], 8, 1),
-                          graph.graph_edges],
-                         -1).reshape(-1, 2)
+        edges = np.stack(
+            [
+                np.repeat(np.arange(graph.graph_edges.shape[0])[:, None], 8, 1),
+                graph.graph_edges,
+            ],
+            -1,
+        ).reshape(-1, 2)
         edges = edges[edges[:, 1] != -1]
         self.add_graph(graph.node_positions, edges, colors=colors, name=name)
         # add warped version
@@ -381,7 +428,7 @@ class Vis3D(Wis3D):
         super(Vis3D, self).add_voxel(positions, voxel_size, colors, name=name)
 
     def add_depth_map(self, depth, name=None):
-        cmap = get_cmap('jet')
+        cmap = get_cmap("jet")
         depth = cmap(to_array(depth))
         depth = ((depth[:, :, :3]) * 255).astype(np.uint8)
         self.add_image(depth, name=name)
@@ -389,12 +436,13 @@ class Vis3D(Wis3D):
     def add_plt(self, x, name=None, **kwargs):
         from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
         from matplotlib.figure import Figure
+
         fig = Figure()
         canvas = FigureCanvas(fig)
         ax = fig.gca()
 
         # ax.text(0.0, 0.0, "Test", fontsize=45)
-        ax.axis('off')
+        ax.axis("off")
         fig.tight_layout(pad=0)
 
         # To remove the huge white borders
@@ -405,7 +453,9 @@ class Vis3D(Wis3D):
         canvas.draw()  # draw the canvas, cache the renderer
 
         width, height = fig.get_size_inches() * fig.get_dpi()
-        image = np.frombuffer(canvas.tostring_rgb(), dtype='uint8').reshape(int(height), int(width), 3)
+        image = np.frombuffer(canvas.tostring_rgb(), dtype="uint8").reshape(
+            int(height), int(width), 3
+        )
         self.add_image(image, name=name)
 
     def increase_scene_id(self):
@@ -420,11 +470,20 @@ class Vis3D(Wis3D):
         :return:
         """
         from easyhec.utils.flow_viz import flow_to_image
+
         flow_img = flow_to_image(flow)
         self.add_image(flow_img, name=name)
 
-    def add_boxes(self, positions, eulers=None, extents=None, *, order=(0, 1, 2, 3, 4, 5, 6, 7), labels=None,
-                  name=None):
+    def add_boxes(
+        self,
+        positions,
+        eulers=None,
+        extents=None,
+        *,
+        order=(0, 1, 2, 3, 4, 5, 6, 7),
+        labels=None,
+        name=None,
+    ):
         if not self.enable:
             return
         positions = tensor2ndarray(positions).copy()
@@ -447,9 +506,11 @@ class Vis3D(Wis3D):
             extents = np.hstack((extent_xs, extent_ys, extent_zs))
 
             rot_mats = np.stack(
-                (vector_xs / extent_xs, vector_ys / extent_ys, vector_zs / extent_zs), axis=2)
+                (vector_xs / extent_xs, vector_ys / extent_ys, vector_zs / extent_zs),
+                axis=2,
+            )
             Rs = Rotation.from_matrix(rot_mats)
-            eulers = Rs.as_euler('XYZ')
+            eulers = Rs.as_euler("XYZ")
         else:
             positions = tensor2ndarray(positions)
             eulers = tensor2ndarray(eulers)
@@ -461,22 +522,21 @@ class Vis3D(Wis3D):
         boxes = []
         for i in range(len(positions)):
             box_def = self.three_to_world @ affines.compose(
-                positions[i], euler.euler2mat(*eulers[i], 'rxyz'), extents[i])
+                positions[i], euler.euler2mat(*eulers[i], "rxyz"), extents[i]
+            )
             T, R, Z, _ = affines.decompose(box_def)
             box = dict(
-                position=T.tolist(),
-                euler=euler.mat2euler(R, 'rxyz'),
-                extent=Z.tolist()
+                position=T.tolist(), euler=euler.mat2euler(R, "rxyz"), extent=Z.tolist()
             )
             if labels is not None:
                 if isinstance(labels, str):
                     labels = [labels]
-                box.update({'label': labels[i]})
+                box.update({"label": labels[i]})
 
             boxes.append(box)
 
-        filename = self.__get_export_file_name('boxes', name)
-        with open(filename, 'w') as f:
+        filename = self.__get_export_file_name("boxes", name)
+        with open(filename, "w") as f:
             f.write(json.dumps(boxes))
 
     # def add_plt(self, x,name=None, **kwargs):
@@ -485,9 +545,9 @@ class Vis3D(Wis3D):
 
     def __repr__(self):
         if not self.enable:
-            return f'Vis3D:NA'
+            return f"Vis3D:NA"
         else:
-            return f'Vis3D:{self.sequence_name}:{self.scene_id}'
+            return f"Vis3D:{self.sequence_name}:{self.scene_id}"
 
     def add_unit_cube(self):
         mesh = trimesh.primitives.Box()
@@ -496,11 +556,17 @@ class Vis3D(Wis3D):
     def add_plane(self, x=None, y=None, z=None, scale=10, name=None):
         assert (x is not None) + (y is not None) + (z is not None) == 1
         if x is not None:
-            self.add_box_by_6border(x, -scale, -scale, x + 0.01, scale, scale, name=name)
+            self.add_box_by_6border(
+                x, -scale, -scale, x + 0.01, scale, scale, name=name
+            )
         if y is not None:
-            self.add_box_by_6border(-scale, y, -scale, scale, y + 0.01, scale, name=name)
+            self.add_box_by_6border(
+                -scale, y, -scale, scale, y + 0.01, scale, name=name
+            )
         if z is not None:
-            self.add_box_by_6border(-scale, -scale, z, scale, scale, z + 0.01, name=name)
+            self.add_box_by_6border(
+                -scale, -scale, z, scale, scale, z + 0.01, name=name
+            )
 
     def __get_export_file_name(self, file_type: str, name: str = None) -> str:
         export_dir = os.path.join(
@@ -521,9 +587,14 @@ class Vis3D(Wis3D):
     def add_volume(self, bounds, dimension):
         xmin, ymin, zmin = bounds[0]
         xmax, ymax, zmax = bounds[1]
-        positions = torch.stack(torch.meshgrid(torch.linspace(xmin, xmax, dimension[0]),
-                                               torch.linspace(ymin, ymax, dimension[1]),
-                                               torch.linspace(zmin, zmax, dimension[2]), ), -1)
+        positions = torch.stack(
+            torch.meshgrid(
+                torch.linspace(xmin, xmax, dimension[0]),
+                torch.linspace(ymin, ymax, dimension[1]),
+                torch.linspace(zmin, zmax, dimension[2]),
+            ),
+            -1,
+        )
         positions = positions.reshape(-1, 3)
         positions, _ = random_choice(positions, 10000, dim=0, replace=False)
         self.add_voxel(positions, (xmax - xmin) / dimension[0])
@@ -545,7 +616,9 @@ class Vis3D(Wis3D):
         """
         from easyhec.utils import utils_3d
         from easyhec.utils.utils_3d import Rt_to_pose
-        if not self.enable: return
+
+        if not self.enable:
+            return
         if Tw_w2B is None:
             Tw_w2B = np.eye(4)
         qpos = to_array(qpos)
@@ -558,10 +631,7 @@ class Vis3D(Wis3D):
         #     pq = sk.compute_forward_kinematics(qpos, link)
         # print("link", sk.robot.get_links()[link], pq)
         # self.add_spheres(np.array(pq.p), 0.01, name=f'link{link:02d}_{sk.robot.get_links()[link].name}')
-        local_pts = np.array([[0, 0, 0],
-                              [1, 0, 0],
-                              [0, 1, 0],
-                              [0, 0, 1]]) * 0.05
+        local_pts = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]) * 0.05
         for link in range(num_links):
             link_name = links[link].name
 
@@ -569,16 +639,22 @@ class Vis3D(Wis3D):
 
             pose = Rt_to_pose(transforms3d.quaternions.quat2mat(pq.q), pq.p)
             from easyhec.structures.xarm_mapping import link_name_mesh_path_mapping
+
             mesh_path = link_name_mesh_path_mapping[link_name]
-            if mesh_path == "": continue
+            if mesh_path == "":
+                continue
             mesh = trimesh.load_mesh(mesh_path)
             add_name = link_name if name == "" else name + "_" + link_name
-            self.add_mesh(utils_3d.transform_points(mesh.vertices, Tw_w2B @ pose), mesh.faces, name=add_name)
+            self.add_mesh(
+                utils_3d.transform_points(mesh.vertices, Tw_w2B @ pose),
+                mesh.faces,
+                name=add_name,
+            )
             axis_in_base = utils_3d.transform_points(local_pts, Tw_w2B @ pose)
             if add_local_coord:
-                self.add_lines(axis_in_base[0], axis_in_base[1], name=f'{link_name}_x')
-                self.add_lines(axis_in_base[0], axis_in_base[2], name=f'{link_name}_y')
-                self.add_lines(axis_in_base[0], axis_in_base[3], name=f'{link_name}_z')
+                self.add_lines(axis_in_base[0], axis_in_base[1], name=f"{link_name}_x")
+                self.add_lines(axis_in_base[0], axis_in_base[2], name=f"{link_name}_y")
+                self.add_lines(axis_in_base[0], axis_in_base[3], name=f"{link_name}_z")
         # self.add_spheres(np.array([0.20600027, 0.05546901, 0.00436316]), 0.01, name='p_w')
         # self.add_spheres(np.array([0.20600033, -0.055461, 0.00436242]), 0.01, name='p_w2')
 
@@ -586,7 +662,8 @@ class Vis3D(Wis3D):
     def xarm_sk(self):
         if Vis3D._xarm_sk is None:
             from easyhec.structures.sapien_kin import SAPIENKinematicsModelStandalone
-            urdf_path = os.path.abspath("assets/xarm7_with_gripper_reduced_dof.urdf")
+
+            urdf_path = os.path.abspath("assets/xarm6_with_gripper.urdf")
             sk = SAPIENKinematicsModelStandalone(urdf_path)
             Vis3D._xarm_sk = sk
         return Vis3D._xarm_sk
@@ -607,17 +684,16 @@ class Vis3D(Wis3D):
         """
         from easyhec.utils import utils_3d
         from easyhec.utils.utils_3d import Rt_to_pose
-        if not self.enable: return
+
+        if not self.enable:
+            return
         if Tw_w2B is None:
             Tw_w2B = np.eye(4)
         qpos = to_array(qpos)
         sk = self.franka_sk
         links = sk.robot.get_links()
         num_links = len(links)
-        local_pts = np.array([[0, 0, 0],
-                              [1, 0, 0],
-                              [0, 1, 0],
-                              [0, 0, 1]]) * 0.05
+        local_pts = np.array([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]) * 0.05
         for link in range(num_links):
             link_name = links[link].name
 
@@ -625,26 +701,34 @@ class Vis3D(Wis3D):
 
             pose = Rt_to_pose(transforms3d.quaternions.quat2mat(pq.q), pq.p)
             from easyhec.structures.franka_mapping import link_name_mesh_path_mapping
+
             mesh_path = link_name_mesh_path_mapping[link_name]
-            if mesh_path == "": continue
-            mesh = trimesh.load(mesh_path, force='mesh')
+            if mesh_path == "":
+                continue
+            mesh = trimesh.load(mesh_path, force="mesh")
             add_name = link_name if name == "" else name + "_" + link_name
-            self.add_mesh(utils_3d.transform_points(mesh.vertices, Tw_w2B @ pose), mesh.faces, name=add_name)
+            self.add_mesh(
+                utils_3d.transform_points(mesh.vertices, Tw_w2B @ pose),
+                mesh.faces,
+                name=add_name,
+            )
             axis_in_base = utils_3d.transform_points(local_pts, Tw_w2B @ pose)
             if add_local_coord:
-                self.add_lines(axis_in_base[0], axis_in_base[1], name=f'{link_name}_x')
-                self.add_lines(axis_in_base[0], axis_in_base[2], name=f'{link_name}_y')
-                self.add_lines(axis_in_base[0], axis_in_base[3], name=f'{link_name}_z')
+                self.add_lines(axis_in_base[0], axis_in_base[1], name=f"{link_name}_x")
+                self.add_lines(axis_in_base[0], axis_in_base[2], name=f"{link_name}_y")
+                self.add_lines(axis_in_base[0], axis_in_base[3], name=f"{link_name}_z")
 
     @property
     def franka_sk(self):
         if Vis3D._franka_sk is None:
             from easyhec.structures.sapien_kin import SAPIENKinematicsModelStandalone
+
             urdf_path = os.path.abspath("assets/franka/urdf/franka.urdf")
             sk = SAPIENKinematicsModelStandalone(urdf_path)
             Vis3D._franka_sk = sk
         return Vis3D._franka_sk
 
     def add_text(self, text):
-        if not self.enable: return
+        if not self.enable:
+            return
         self.add_image(np.zeros((1, 100, 3)), name=text)

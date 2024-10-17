@@ -45,7 +45,11 @@ class PointRendApiHelper:
 
     @staticmethod
     def setup_helper(config_file, model_weight):
-        if PointRendApiHelper.set and config_file == PointRendApiHelper._config_file and model_weight == PointRendApiHelper._model_weight:
+        if (
+            PointRendApiHelper.set
+            and config_file == PointRendApiHelper._config_file
+            and model_weight == PointRendApiHelper._model_weight
+        ):
             return
         PointRendApiHelper._config_file = config_file
         PointRendApiHelper._model_weight = model_weight
@@ -86,14 +90,27 @@ def pointrend_api(config_file, model_weight, image: Union[str, np.ndarray]):
         image = image.copy()
         image = image[:, :, ::-1]
         image_path = "dummy.png"
-    dataset_dict = {"file_name": image_path, "image_id": 0, "height": image.shape[0],
-                    "width": image.shape[1]}
+    dataset_dict = {
+        "file_name": image_path,
+        "image_id": 0,
+        "height": image.shape[0],
+        "width": image.shape[1],
+    }
     aug_input = T.AugInput(image.copy(), sem_seg=None)
     augmentations(aug_input)
-    dataset_dict["image"] = torch.as_tensor(np.ascontiguousarray(aug_input.image.transpose(2, 0, 1)))
+    dataset_dict["image"] = torch.as_tensor(
+        np.ascontiguousarray(aug_input.image.transpose(2, 0, 1))
+    )
     inputs = [dataset_dict]
     outputs = model(inputs)
-    pred_binary_mask = outputs[0]["instances"].to("cpu").get_fields()['pred_masks'].sum(0).clamp(max=1).bool()
+    pred_binary_mask = (
+        outputs[0]["instances"]
+        .to("cpu")
+        .get_fields()["pred_masks"]
+        .sum(0)
+        .clamp(max=1)
+        .bool()
+    )
     pred_binary_mask = pred_binary_mask.numpy().astype(np.uint8)
     return pred_binary_mask
 
@@ -106,13 +123,13 @@ def main():
 
     pred_binary_mask = pointrend_api(config_file, model_weight, image)
 
-    v = Visualizer(image,
-                   metadata=dict(thing_classes=["xarm"]),
-                   scale=0.5,
-                   instance_mode=ColorMode.IMAGE_BW
-                   )
-    out = v.draw_binary_mask(pred_binary_mask.numpy().astype(np.uint8),
-                             color=[0, 1, 0])
+    v = Visualizer(
+        image,
+        metadata=dict(thing_classes=["xarm"]),
+        scale=0.5,
+        instance_mode=ColorMode.IMAGE_BW,
+    )
+    out = v.draw_binary_mask(pred_binary_mask.numpy().astype(np.uint8), color=[0, 1, 0])
     plt.imshow(out.get_image())
     plt.show()
 

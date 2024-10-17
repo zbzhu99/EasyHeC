@@ -6,14 +6,14 @@ import torch
 
 class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
     def __init__(
-            self,
-            optimizer,
-            milestones,
-            gamma=0.1,
-            warmup_factor=1.0 / 3,
-            warmup_iters=500,
-            warmup_method="linear",
-            last_epoch=-1,
+        self,
+        optimizer,
+        milestones,
+        gamma=0.1,
+        warmup_factor=1.0 / 3,
+        warmup_iters=500,
+        warmup_method="linear",
+        last_epoch=-1,
     ):
         if not list(milestones) == sorted(milestones):
             raise ValueError(
@@ -51,13 +51,13 @@ class WarmupMultiStepLR(torch.optim.lr_scheduler._LRScheduler):
 
 class WarmupCosineLR(torch.optim.lr_scheduler._LRScheduler):
     def __init__(
-            self,
-            optimizer: torch.optim.Optimizer,
-            max_iters: int,
-            warmup_factor: float = 0.001,
-            warmup_iters: int = 1000,
-            warmup_method: str = "linear",
-            last_epoch: int = -1,
+        self,
+        optimizer: torch.optim.Optimizer,
+        max_iters: int,
+        warmup_factor: float = 0.001,
+        warmup_iters: int = 1000,
+        warmup_method: str = "linear",
+        last_epoch: int = -1,
     ):
         self.max_iters = max_iters
         self.warmup_factor = warmup_factor
@@ -93,12 +93,14 @@ class ExponentialScheduler(torch.optim.lr_scheduler._LRScheduler):
         self.lrate_decay = lrate_decay
         super().__init__(optimizer, last_epoch)
         self.cfg = cfg
-        self.do_decay = [lr > cfg.solver.scheduler_decay_thresh for lr in self.base_lrs]  # todo:put in cfg
+        self.do_decay = [
+            lr > cfg.solver.scheduler_decay_thresh for lr in self.base_lrs
+        ]  # todo:put in cfg
 
     def get_lr(self):
         lrs = []
         for i, base_lr in enumerate(self.base_lrs):
-            if hasattr(self, 'do_decay'):
+            if hasattr(self, "do_decay"):
                 do_decay = self.do_decay[i]
             else:
                 do_decay = True
@@ -120,7 +122,9 @@ class WarmupExponentialScheduler(torch.optim.lr_scheduler._LRScheduler):
     def get_lr(self):
         if self.last_epoch < self.warmup_iters:
             lrs = [
-                base_lr * self.last_epoch / self.warmup_iters
+                base_lr
+                * self.last_epoch
+                / self.warmup_iters
                 * (self.gamma ** (self.last_epoch / self.lrate_decay))
                 for base_lr in self.base_lrs
             ]

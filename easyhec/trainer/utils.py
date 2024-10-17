@@ -4,7 +4,7 @@ import torch
 
 
 def to_cuda(x):
-    if hasattr(x, 'cuda'):
+    if hasattr(x, "cuda"):
         return x.cuda()
     elif isinstance(x, (list, tuple)):
         return [to_cuda(xi) for xi in x]
@@ -12,8 +12,8 @@ def to_cuda(x):
         return {k: to_cuda(v) for k, v in x.items()}
     elif isinstance(x, (str, int, float)):
         return x
-    elif hasattr(x, 'to'):
-        return x.to('cuda')
+    elif hasattr(x, "to"):
+        return x.to("cuda")
     else:
         raise NotImplementedError()
 
@@ -21,20 +21,20 @@ def to_cuda(x):
 def to_cpu(x):
     if x is None:
         return None
-    elif hasattr(x, 'cpu'):
+    elif hasattr(x, "cpu"):
         return x.cpu()
-    elif hasattr(x, 'to'):
-        return x.to(device='cpu')
+    elif hasattr(x, "to"):
+        return x.to(device="cpu")
     elif isinstance(x, (list, tuple)):
         return [to_cpu(xi) for xi in x]
     elif isinstance(x, dict):
         return {k: to_cpu(v) for k, v in x.items()}
     elif isinstance(x, (str, int, float)):
         return x
-    elif hasattr(x, 'to'):
-        return x.to('cpu')
+    elif hasattr(x, "to"):
+        return x.to("cpu")
     else:
-        raise RuntimeError(f'x:{type(x)} is not supported for to_cpu().')
+        raise RuntimeError(f"x:{type(x)} is not supported for to_cpu().")
 
 
 def batch_gpu(batch):
@@ -51,12 +51,12 @@ def format_time(t_):
     t = int(t_)
     h, m, s = t // 3600, (t // 60) % 60, t % 60
     if h != 0:
-        return f'{h}:{m:02d}:{s:02d}'
+        return f"{h}:{m:02d}:{s:02d}"
     else:
         if m != 0:
-            return f'{m:02d}:{s:02d}'
+            return f"{m:02d}:{s:02d}"
         else:
-            return f'{t_:.2f}s'
+            return f"{t_:.2f}s"
 
 
 class TrainerState(IntEnum):

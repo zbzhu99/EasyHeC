@@ -4,17 +4,17 @@ from easyhec.trainer.rbsolver import RBSolverTrainer
 from easyhec.trainer.rbsolve_iter import RBSolverIterTrainer
 
 
-@TRAINERS.register('base')
+@TRAINERS.register("base")
 def build_base_trainer(cfg):
     return BaseTrainer(cfg)
 
 
-@TRAINERS.register('rbsolver')
+@TRAINERS.register("rbsolver")
 def build_rbsolver_trainer(cfg):
     return RBSolverTrainer(cfg)
 
 
-@TRAINERS.register('rbsolver_iter')
+@TRAINERS.register("rbsolver_iter")
 def build_rbsolveriter_trainer(cfg):
     return RBSolverIterTrainer(cfg)
 

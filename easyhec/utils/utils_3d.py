@@ -27,7 +27,9 @@ def cart_to_hom(pts):
     :return pts_hom: (N, 4 or 3)
     """
     if isinstance(pts, np.ndarray):
-        pts_hom = np.concatenate((pts, np.ones([*pts.shape[:-1], 1], dtype=np.float32)), -1)
+        pts_hom = np.concatenate(
+            (pts, np.ones([*pts.shape[:-1], 1], dtype=np.float32)), -1
+        )
     else:
         ones = torch.ones([*pts.shape[:-1], 1], dtype=torch.float32, device=pts.device)
         pts_hom = torch.cat((pts, ones), dim=-1)
@@ -60,9 +62,7 @@ def rotx_np(a):
     zeros = np.zeros_like(a)
     c = np.cos(a)
     s = np.sin(a)
-    rot = np.stack([ones, zeros, zeros,
-                    zeros, c, -s,
-                    zeros, s, c])
+    rot = np.stack([ones, zeros, zeros, zeros, c, -s, zeros, s, c])
     return rot.reshape((-1, 3, 3))
 
 
@@ -80,9 +80,7 @@ def roty_np(a):
     zeros = np.zeros_like(a)
     c = np.cos(a)
     s = np.sin(a)
-    rot = np.stack([c, zeros, s,
-                    zeros, ones, zeros,
-                    -s, zeros, c])
+    rot = np.stack([c, zeros, s, zeros, ones, zeros, -s, zeros, c])
     return rot.reshape((-1, 3, 3))
 
 
@@ -102,9 +100,7 @@ def roty_torch(a):
     zeros = torch.zeros_like(a)
     c = torch.cos(a)
     s = torch.sin(a)
-    rot = torch.stack([c, zeros, s,
-                       zeros, ones, zeros,
-                       -s, zeros, c], dim=-1)
+    rot = torch.stack([c, zeros, s, zeros, ones, zeros, -s, zeros, c], dim=-1)
     return rot.reshape(*rot.shape[:-1], 3, 3)
 
 
@@ -122,9 +118,7 @@ def rotz_np(a):
     zeros = np.zeros_like(a)
     c = np.cos(a)
     s = np.sin(a)
-    rot = np.stack([c, -s, zeros,
-                    s, c, zeros,
-                    zeros, zeros, ones])
+    rot = np.stack([c, -s, zeros, s, c, zeros, zeros, zeros, ones])
     return rot.reshape((-1, 3, 3))
 
 
@@ -138,9 +132,7 @@ def rotz_torch(a):
     zeros = torch.zeros_like(a)
     c = torch.cos(a)
     s = torch.sin(a)
-    rot = torch.stack([c, -s, zeros,
-                       s, c, zeros,
-                       zeros, zeros, ones], dim=-1)
+    rot = torch.stack([c, -s, zeros, s, c, zeros, zeros, zeros, ones], dim=-1)
     return rot.reshape(*rot.shape[:-1], 3, 3)
 
 
@@ -161,9 +153,7 @@ def rotx(t):
     zeros = torch.zeros_like(t)
     c = torch.cos(t)
     s = torch.sin(t)
-    rot = torch.stack([ones, zeros, zeros,
-                       zeros, c, -s,
-                       zeros, s, c], dim=-1)
+    rot = torch.stack([ones, zeros, zeros, zeros, c, -s, zeros, s, c], dim=-1)
     return rot.reshape(*rot.shape[:-1], 3, 3)
 
 
@@ -203,11 +193,15 @@ def img_to_rect(fu, fv, cu, cv, u, v, depth_rect):
     if isinstance(depth_rect, np.ndarray):
         x = ((u - cu) * depth_rect) / fu
         y = ((v - cv) * depth_rect) / fv
-        pts_rect = np.concatenate((x.reshape(-1, 1), y.reshape(-1, 1), depth_rect.reshape(-1, 1)), axis=1)
+        pts_rect = np.concatenate(
+            (x.reshape(-1, 1), y.reshape(-1, 1), depth_rect.reshape(-1, 1)), axis=1
+        )
     else:
         x = ((u.float() - cu) * depth_rect) / fu
         y = ((v.float() - cv) * depth_rect) / fv
-        pts_rect = torch.cat((x.reshape(-1, 1), y.reshape(-1, 1), depth_rect.reshape(-1, 1)), dim=1)
+        pts_rect = torch.cat(
+            (x.reshape(-1, 1), y.reshape(-1, 1), depth_rect.reshape(-1, 1)), dim=1
+        )
     # x = ((u - cu) * depth_rect) / fu
     # y = ((v - cv) * depth_rect) / fv
     # pts_rect = np.concatenate((x.reshape(-1, 1), y.reshape(-1, 1), depth_rect.reshape(-1, 1)), axis=1)
@@ -233,7 +227,7 @@ def depth_to_rect(fu, fv, cu, cv, depth_map, ray_mode=False, select_coords=None)
         else:
             x_range = torch.arange(0, depth_map.shape[1]).to(device=depth_map.device)
             y_range = torch.arange(0, depth_map.shape[0]).to(device=depth_map.device)
-            y_idxs, x_idxs = torch.meshgrid(y_range, x_range, indexing='ij')
+            y_idxs, x_idxs = torch.meshgrid(y_range, x_range, indexing="ij")
         x_idxs, y_idxs = x_idxs.reshape(-1), y_idxs.reshape(-1)
         depth = depth_map[y_idxs, x_idxs]
     else:
@@ -242,17 +236,33 @@ def depth_to_rect(fu, fv, cu, cv, depth_map, ray_mode=False, select_coords=None)
         depth = depth_map
     if ray_mode is True:
         if isinstance(depth, torch.Tensor):
-            depth = depth / (((x_idxs.float() - cu.float()) / fu.float()) ** 2 + (
-                    (y_idxs.float() - cv.float()) / fv.float()) ** 2 + 1) ** 0.5
+            depth = (
+                depth
+                / (
+                    ((x_idxs.float() - cu.float()) / fu.float()) ** 2
+                    + ((y_idxs.float() - cv.float()) / fv.float()) ** 2
+                    + 1
+                )
+                ** 0.5
+            )
         else:
-            depth = depth / (((x_idxs - cu) / fu) ** 2 + (
-                    (y_idxs - cv) / fv) ** 2 + 1) ** 0.5
+            depth = (
+                depth
+                / (((x_idxs - cu) / fu) ** 2 + ((y_idxs - cv) / fv) ** 2 + 1) ** 0.5
+            )
     pts_rect = img_to_rect(fu, fv, cu, cv, x_idxs, y_idxs, depth)
     return pts_rect
 
 
-def create_center_radius(center=np.array([0, 0, 0]), dist=5., angle_z=30, nrad=180, start=0., endpoint=True,
-                         end=2 * np.pi):
+def create_center_radius(
+    center=np.array([0, 0, 0]),
+    dist=5.0,
+    angle_z=30,
+    nrad=180,
+    start=0.0,
+    endpoint=True,
+    end=2 * np.pi,
+):
     RTs = []
     center = np.array(center).reshape(3, 1)
     thetas = np.linspace(start, end, nrad, endpoint=endpoint)
@@ -265,15 +275,11 @@ def create_center_radius(center=np.array([0, 0, 0]), dist=5., angle_z=30, nrad=1
         center_ = np.array([radius * ct, radius * st, height]).reshape(3, 1)
         center_[0] += center[0, 0]
         center_[1] += center[1, 0]
-        R = np.array([
-            [-st, ct, 0],
-            [0, 0, -1],
-            [-ct, -st, 0]
-        ])
-        Rotx = cv2.Rodrigues(angle_z * np.array([1., 0., 0.]))[0]
+        R = np.array([[-st, ct, 0], [0, 0, -1], [-ct, -st, 0]])
+        Rotx = cv2.Rodrigues(angle_z * np.array([1.0, 0.0, 0.0]))[0]
         R = Rotx @ R
-        T = - R @ center_
-        center_ = - R.T @ T
+        T = -R @ center_
+        center_ = -R.T @ T
         RT = np.hstack([R, T])
         RTs.append(RT)
     return np.stack(RTs)
@@ -285,42 +291,55 @@ def open3d_plane_segment_api(pts, distance_threshold, ransac_n=3, num_iterations
     pts = to_array(pts)
     pcd0 = o3d.geometry.PointCloud()
     pcd0.points = o3d.utility.Vector3dVector(pts)
-    plane_model, inliers = pcd0.segment_plane(distance_threshold,
-                                              ransac_n=ransac_n,
-                                              num_iterations=num_iterations)
+    plane_model, inliers = pcd0.segment_plane(
+        distance_threshold, ransac_n=ransac_n, num_iterations=num_iterations
+    )
     return plane_model, inliers
 
 
 def point_plane_distance_api(pts, plane_model):
     a, b, c, d = plane_model.tolist()
     if isinstance(pts, torch.Tensor):
-        dists = (a * pts[:, 0] + b * pts[:, 1] + c * pts[:, 2] + d).abs() / ((a * a + b * b + c * c) ** 0.5)
+        dists = (a * pts[:, 0] + b * pts[:, 1] + c * pts[:, 2] + d).abs() / (
+            (a * a + b * b + c * c) ** 0.5
+        )
     else:
-        dists = np.abs(a * pts[:, 0] + b * pts[:, 1] + c * pts[:, 2] + d) / ((a * a + b * b + c * c) ** 0.5)
+        dists = np.abs(a * pts[:, 0] + b * pts[:, 1] + c * pts[:, 2] + d) / (
+            (a * a + b * b + c * c) ** 0.5
+        )
     return dists
 
 
 def se3_exp_map(log_transform: torch.Tensor, eps: float = 1e-4):
     from .pytorch3d_se3 import se3_exp_map
+
     return se3_exp_map(log_transform, eps)
 
 
-def se3_log_map(transform: torch.Tensor, eps: float = 1e-4, cos_bound: float = 1e-4, backend=None,
-                test_acc=True):
+def se3_log_map(
+    transform: torch.Tensor,
+    eps: float = 1e-4,
+    cos_bound: float = 1e-4,
+    backend=None,
+    test_acc=True,
+):
     if backend is None:
         loguru.logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         loguru.logger.warning("!!!!se3_log_map backend is None!!!!")
         loguru.logger.warning("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        backend = 'pytorch3d'
-    if backend == 'pytorch3d':
+        backend = "pytorch3d"
+    if backend == "pytorch3d":
         dof6 = pytorch3d.transforms.se3.se3_log_map(transform, eps, cos_bound)
-    elif backend == 'opencv':
+    elif backend == "opencv":
         from .pytorch3d_se3 import _se3_V_matrix, _get_se3_V_input
+
         # from pytorch3d.common.compat import solve
         log_rotation = []
         for tsfm in transform:
             cv2_rot = -cv2.Rodrigues(to_array(tsfm[:3, :3]))[0]
-            log_rotation.append(torch.from_numpy(cv2_rot.reshape(-1)).to(transform.device).float())
+            log_rotation.append(
+                torch.from_numpy(cv2_rot.reshape(-1)).to(transform.device).float()
+            )
         log_rotation = torch.stack(log_rotation, dim=0)
         T = transform[:, 3, :3]
         V = _se3_V_matrix(*_get_se3_V_input(log_rotation), eps=eps)
@@ -351,7 +370,8 @@ def calc_pts_diameter2(pts):
     :return: Diameter.
     """
     from scipy.spatial import distance
-    dists = distance.cdist(pts, pts, 'euclidean')
+
+    dists = distance.cdist(pts, pts, "euclidean")
     diameter = np.max(dists)
     return diameter
 
@@ -364,31 +384,41 @@ def calc_pose_from_lookat(phis, thetas, size, radius=1.2):
     return Tw_w2c
     """
     import torch
+
     def normalize(vectors):
         return vectors / (torch.norm(vectors, dim=-1, keepdim=True) + 1e-10)
 
-    device = torch.device('cpu')
+    device = torch.device("cpu")
     thetas = torch.FloatTensor(thetas).to(device)
     phis = torch.FloatTensor(phis).to(device)
 
-    centers = torch.stack([
-        radius * torch.sin(thetas) * torch.sin(phis),
-        -radius * torch.cos(thetas) * torch.sin(phis),
-        radius * torch.cos(phis),
-    ], dim=-1)  # [B, 3]
+    centers = torch.stack(
+        [
+            radius * torch.sin(thetas) * torch.sin(phis),
+            -radius * torch.cos(thetas) * torch.sin(phis),
+            radius * torch.cos(phis),
+        ],
+        dim=-1,
+    )  # [B, 3]
 
     # lookat
     forward_vector = normalize(centers)
     up_vector = torch.FloatTensor([0, 0, 1]).to(device).unsqueeze(0).repeat(size, 1)
     right_vector = normalize(torch.cross(up_vector, forward_vector, dim=-1))
     if right_vector.pow(2).sum() < 0.01:
-        right_vector = torch.FloatTensor([0, 1, 0]).to(device).unsqueeze(0).repeat(size, 1)
+        right_vector = (
+            torch.FloatTensor([0, 1, 0]).to(device).unsqueeze(0).repeat(size, 1)
+        )
     up_vector = normalize(torch.cross(forward_vector, right_vector, dim=-1))
 
-    poses = torch.eye(4, dtype=torch.float, device=device).unsqueeze(0).repeat(size, 1, 1)
+    poses = (
+        torch.eye(4, dtype=torch.float, device=device).unsqueeze(0).repeat(size, 1, 1)
+    )
     poses[:, :3, :3] = torch.stack((right_vector, up_vector, forward_vector), dim=-1)
     poses[:, :3, 3] = centers
-    blender2opencv = np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]], dtype=np.float32)
+    blender2opencv = np.array(
+        [[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1]], dtype=np.float32
+    )
     for i in range(len(poses)):
         poses[i] = poses[i] @ blender2opencv
     return poses

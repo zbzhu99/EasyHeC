@@ -41,8 +41,6 @@ def _so3_exp_map(
     return R, rot_angles, skews, skews_square
 
 
-
-
 def se3_exp_map(log_transform: torch.Tensor, eps: float = 1e-4) -> torch.Tensor:
     """
     Convert a batch of logarithmic representations of SE(3) matrices `log_transform`
@@ -130,8 +128,6 @@ def se3_exp_map(log_transform: torch.Tensor, eps: float = 1e-4) -> torch.Tensor:
     return transform.permute(0, 2, 1)
 
 
-
-
 def se3_log_map(
     transform: torch.Tensor, eps: float = 1e-4, cos_bound: float = 1e-4
 ) -> torch.Tensor:
@@ -212,7 +208,6 @@ def se3_log_map(
     log_translation = torch.linalg.solve(V, T[:, :, None])[:, :, 0]
 
     return torch.cat((log_translation, log_rotation), dim=1)
-
 
 
 def _se3_V_matrix(

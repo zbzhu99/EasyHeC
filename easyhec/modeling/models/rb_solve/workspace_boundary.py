@@ -26,7 +26,7 @@ def get_workspace_boundary():
 
 def main():
     vis3d = Vis3D(
-        xyz_pattern=('x', 'y', 'z'),
+        xyz_pattern=("x", "y", "z"),
         out_folder="dbg",
         sequence="model_env",
     )
@@ -35,5 +35,5 @@ def main():
     vis3d.add_xarm(np.zeros(9))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

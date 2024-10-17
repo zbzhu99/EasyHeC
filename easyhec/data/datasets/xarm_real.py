@@ -12,7 +12,6 @@ from easyhec.utils import utils_3d
 
 
 class XarmRealDataset(torch.utils.data.Dataset):
-
     def __init__(self, cfg, data_dir, transforms=None, ds_len=-1):
         self.total_cfg = cfg
         self.cfg = cfg.dataset.xarm_real
@@ -79,6 +78,6 @@ class XarmRealDataset(torch.utils.data.Dataset):
             "K": K,
             "link_poses": link_poses,
             "Tc_c2b": Tc_c2b,
-            "mask": mask
+            "mask": mask,
         }
         return data_dict

@@ -21,3 +21,7 @@ third_party/detectron2/detectron2.egg-info
 /third_party/detectron2/projects/PointRend/models/
 /third_party/detectron2/detectron2/model_zoo/configs
 /third_party/detectron2/detectron2/model_zoo/configs/
+
+.vscode/
+assets/offline_example
+*.pth

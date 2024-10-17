@@ -3,12 +3,12 @@ from .default_batch_collator import DefaultBatchCollator
 from .extended_batch_collator import ExtendedBatchCollator
 
 
-@BATCH_COLLATORS.register('DefaultBatchCollator')
+@BATCH_COLLATORS.register("DefaultBatchCollator")
 def build_default_batch_colloator(cfg):
     return DefaultBatchCollator()
 
 
-@BATCH_COLLATORS.register('ExtendedBatchCollator')
+@BATCH_COLLATORS.register("ExtendedBatchCollator")
 def build(cfg):
     return ExtendedBatchCollator()
 

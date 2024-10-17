@@ -31,7 +31,6 @@ from easyhec.utils.tb_utils import get_summary_writer
 
 
 class BaseTrainer:
-
     def __init__(self, cfg):
         self.model: nn.Module = build_model(cfg).to(torch.device(cfg.model.device))
         loguru.logger.info("making dataloader...")
@@ -46,8 +45,9 @@ class BaseTrainer:
         self.save_mode = cfg.solver.save_mode
         self.save_freq = cfg.solver.save_freq
         self.optimizer = make_optimizer(cfg, self.model)
-        self.scheduler = make_lr_scheduler(cfg, self.optimizer,
-                                           cfg.solver.num_epochs * len(self.train_dl))
+        self.scheduler = make_lr_scheduler(
+            cfg, self.optimizer, cfg.solver.num_epochs * len(self.train_dl)
+        )
         self.epoch_time_am = AverageMeter()
         self.cfg = cfg
         self._tb_writer = None
@@ -67,53 +67,66 @@ class BaseTrainer:
         for batchid, batch in enumerate(bar):
             self.optimizer.zero_grad()
             batch = to_cuda(batch)
-            batch['global_step'] = batchid
+            batch["global_step"] = batchid
             output, loss_dict = self.model(batch)
             loss = sum(v for k, v in loss_dict.items())
             loss.backward()
             if self.cfg.solver.do_grad_clip:
-                if self.cfg.solver.grad_clip_type == 'norm':
+                if self.cfg.solver.grad_clip_type == "norm":
                     clip_grad_norm_(self.model.parameters(), self.cfg.solver.grad_clip)
                 else:
                     clip_grad_value_(self.model.parameters(), self.cfg.solver.grad_clip)
             self.optimizer.step()
-            if self.scheduler is not None and isinstance(self.scheduler, OneCycleScheduler):
+            if self.scheduler is not None and isinstance(
+                self.scheduler, OneCycleScheduler
+            ):
                 self.scheduler.step()
             # record and plot loss and metrics
             reduced_loss = reduce_loss(loss)
             metrics = {}
-            if 'metrics' in output:
-                for k, v in output['metrics'].items():
+            if "metrics" in output:
+                for k, v in output["metrics"].items():
                     reduced_s = reduce_loss(v)
                     metrics[k] = reduced_s
             if is_main_process():
                 loss_meter.update(reduced_loss.item())
-                lr = self.optimizer.param_groups[0]['lr']
-                self.tb_writer.add_scalar('train/loss', reduced_loss.item(), self.global_steps)
+                lr = self.optimizer.param_groups[0]["lr"]
+                self.tb_writer.add_scalar(
+                    "train/loss", reduced_loss.item(), self.global_steps
+                )
                 for k, v in loss_dict.items():
-                    self.tb_writer.add_scalar(f'train/{k}', v.item(), self.global_steps)
-                self.tb_writer.add_scalar('train/lr', lr, self.global_steps)
-                bar_vals = {'epoch': epoch, 'phase': 'train', 'loss': loss_meter.avg, 'lr': lr}
+                    self.tb_writer.add_scalar(f"train/{k}", v.item(), self.global_steps)
+                self.tb_writer.add_scalar("train/lr", lr, self.global_steps)
+                bar_vals = {
+                    "epoch": epoch,
+                    "phase": "train",
+                    "loss": loss_meter.avg,
+                    "lr": lr,
+                }
                 for k, v in metrics.items():
                     if k not in metric_ams.keys():
                         metric_ams[k] = AverageMeter()
                     metric_ams[k].update(v.item())
-                    self.tb_writer.add_scalar(f'train/{k}', v.item(), self.global_steps)
+                    self.tb_writer.add_scalar(f"train/{k}", v.item(), self.global_steps)
                     bar_vals[k] = metric_ams[k].avg
                 bar.set_postfix(bar_vals)
             self.global_steps += 1
             if self.global_steps % self.save_freq == 0:
-                self.try_to_save(epoch, 'iteration')
+                self.try_to_save(epoch, "iteration")
         torch.cuda.synchronize()
         epoch_time = format_time(time.time() - begin)
         if is_main_process():
-            metric_msgs = ['epoch %d, train, loss %.4f, time %s' % (
-                epoch, loss_meter.avg, epoch_time)]
+            metric_msgs = [
+                "epoch %d, train, loss %.4f, time %s"
+                % (epoch, loss_meter.avg, epoch_time)
+            ]
             for metric, v in metric_ams.items():
-                metric_msgs.append('%s %.4f' % (metric, v.avg))
-            s = ', '.join(metric_msgs)
+                metric_msgs.append("%s %.4f" % (metric, v.avg))
+            s = ", ".join(metric_msgs)
             logger.info(s)
-        if self.scheduler is not None and not isinstance(self.scheduler, OneCycleScheduler):
+        if self.scheduler is not None and not isinstance(
+            self.scheduler, OneCycleScheduler
+        ):
             self.scheduler.step()
 
     @torch.no_grad()
@@ -131,13 +144,13 @@ class BaseTrainer:
             loss = sum(v for k, v in loss_dict.items())
             reduced_loss = reduce_loss(loss)
             metrics = {}
-            if 'metrics' in output:
-                for k, v in output['metrics'].items():
+            if "metrics" in output:
+                for k, v in output["metrics"].items():
                     reduced_s = reduce_loss(v)
                     metrics[k] = reduced_s
             if is_main_process():
                 loss_meter.update(reduced_loss.item())
-                bar_vals = {'epoch': epoch, 'phase': 'val', 'loss': loss_meter.avg}
+                bar_vals = {"epoch": epoch, "phase": "val", "loss": loss_meter.avg}
                 for k, v in metrics.items():
                     if k not in metric_ams.keys():
                         metric_ams[k] = AverageMeter()
@@ -147,15 +160,17 @@ class BaseTrainer:
         torch.cuda.synchronize()
         epoch_time = format_time(time.time() - begin)
         if is_main_process():
-            metric_msgs = ['epoch %d, val, loss %.4f, time %s' % (
-                epoch, loss_meter.avg, epoch_time)]
+            metric_msgs = [
+                "epoch %d, val, loss %.4f, time %s"
+                % (epoch, loss_meter.avg, epoch_time)
+            ]
             for metric, v in metric_ams.items():
-                metric_msgs.append('%s %.4f' % (metric, v.avg))
-            s = ', '.join(metric_msgs)
+                metric_msgs.append("%s %.4f" % (metric, v.avg))
+            s = ", ".join(metric_msgs)
             logger.info(s)
-            self.tb_writer.add_scalar('val/loss', loss_meter.avg, epoch)
+            self.tb_writer.add_scalar("val/loss", loss_meter.avg, epoch)
             for metric, s in metric_ams.items():
-                self.tb_writer.add_scalar(f'val/{metric}', s.avg, epoch)
+                self.tb_writer.add_scalar(f"val/{metric}", s.avg, epoch)
             return loss_meter.avg
 
     def fit(self):
@@ -169,33 +184,47 @@ class BaseTrainer:
             if not self.save_every and epoch % self.cfg.solver.val_freq == 0:
                 self.val_loss = self.val(epoch)
                 synchronize()
-            self.try_to_save(epoch, 'epoch')
+            self.try_to_save(epoch, "epoch")
 
             synchronize()
         if is_main_process():
-            logger.info('Training finished. Total time %s' % (format_time(time.time() - begin)))
+            logger.info(
+                "Training finished. Total time %s" % (format_time(time.time() - begin))
+            )
 
     @torch.no_grad()
     def get_preds(self):
-        prediction_path = osp.join(self.cfg.output_dir, 'inference', self.cfg.datasets.test, 'predictions.pth')
+        prediction_path = osp.join(
+            self.cfg.output_dir, "inference", self.cfg.datasets.test, "predictions.pth"
+        )
         if not self.cfg.test.force_recompute and osp.exists(prediction_path):
-            logger.info(colored(f'predictions found at {prediction_path}, skip recomputing.', 'red'))
+            logger.info(
+                colored(
+                    f"predictions found at {prediction_path}, skip recomputing.", "red"
+                )
+            )
             outputs = torch.load(prediction_path)
         else:
             if get_world_size() > 1:
                 outputs = self.get_preds_dist()
             else:
                 self.model.eval()
-                ordered_valid_dl = DataLoader(self.valid_dl.dataset, self.valid_dl.batch_size, shuffle=False,
-                                              sampler=None, num_workers=self.valid_dl.num_workers,
-                                              collate_fn=self.valid_dl.collate_fn, pin_memory=self.valid_dl.pin_memory,
-                                              timeout=self.valid_dl.timeout,
-                                              worker_init_fn=self.valid_dl.worker_init_fn)
+                ordered_valid_dl = DataLoader(
+                    self.valid_dl.dataset,
+                    self.valid_dl.batch_size,
+                    shuffle=False,
+                    sampler=None,
+                    num_workers=self.valid_dl.num_workers,
+                    collate_fn=self.valid_dl.collate_fn,
+                    pin_memory=self.valid_dl.pin_memory,
+                    timeout=self.valid_dl.timeout,
+                    worker_init_fn=self.valid_dl.worker_init_fn,
+                )
                 bar = tqdm(ordered_valid_dl)
                 outputs = []
                 for i, batch in enumerate(bar):
                     batch = to_cuda(batch)
-                    batch['global_step'] = i
+                    batch["global_step"] = i
                     output, loss_dict = self.model(batch)
                     output = to_cpu(output)
                     outputs.append(output)
@@ -215,13 +244,23 @@ class BaseTrainer:
             self.model.train()
         else:
             self.model.eval()
-        valid_sampler = OrderedDistributedSampler(self.valid_dl.dataset, get_world_size(), rank=get_rank())
-        ordered_dist_valid_dl = DataLoader(self.valid_dl.dataset, self.valid_dl.batch_size, shuffle=False,
-                                           sampler=valid_sampler, num_workers=self.valid_dl.num_workers,
-                                           collate_fn=self.valid_dl.collate_fn, pin_memory=self.valid_dl.pin_memory,
-                                           timeout=self.valid_dl.timeout,
-                                           worker_init_fn=self.valid_dl.worker_init_fn)
-        bar = tqdm(ordered_dist_valid_dl) if is_main_process() else ordered_dist_valid_dl
+        valid_sampler = OrderedDistributedSampler(
+            self.valid_dl.dataset, get_world_size(), rank=get_rank()
+        )
+        ordered_dist_valid_dl = DataLoader(
+            self.valid_dl.dataset,
+            self.valid_dl.batch_size,
+            shuffle=False,
+            sampler=valid_sampler,
+            num_workers=self.valid_dl.num_workers,
+            collate_fn=self.valid_dl.collate_fn,
+            pin_memory=self.valid_dl.pin_memory,
+            timeout=self.valid_dl.timeout,
+            worker_init_fn=self.valid_dl.worker_init_fn,
+        )
+        bar = (
+            tqdm(ordered_dist_valid_dl) if is_main_process() else ordered_dist_valid_dl
+        )
         outputs = []
         for batch in bar:
             x, y = batch_gpu(batch)
@@ -229,11 +268,11 @@ class BaseTrainer:
             output = to_cpu(output)
             outputs.append(output)
         # outputs = cat_outputs(outputs)
-        print('rank', get_rank(), 'here')
+        print("rank", get_rank(), "here")
         try:
             outputs = torch.cat(outputs)
         except:
-            print(red('WARNING: outputs cannot be catted.'))
+            print(red("WARNING: outputs cannot be catted."))
         all_outputs = all_gather(outputs)
         if not is_main_process():
             return
@@ -242,7 +281,7 @@ class BaseTrainer:
         else:
             all_outputs = list(itertools.chain(*all_outputs))
         # print(type(all_outputs), len(all_outputs), type(all_outputs[0]), len(all_outputs[0]))
-        all_outputs = all_outputs[:len(self.valid_dl.dataset)]
+        all_outputs = all_outputs[: len(self.valid_dl.dataset)]
         return all_outputs
 
     def to_base(self):
@@ -267,8 +306,8 @@ class BaseTrainer:
 
     def to_parallel(self):
         assert self.state == TrainerState.BASE
-        devices = os.environ['CUDA_VISIBLE_DEVICES']
-        print('visible devices', devices)
+        devices = os.environ["CUDA_VISIBLE_DEVICES"]
+        print("visible devices", devices)
         self.model = DataParallel(self.model)
         if isinstance(self.scheduler, OneCycleScheduler):
             world_size = get_world_size()
@@ -277,9 +316,16 @@ class BaseTrainer:
             self.scheduler.step_size_down //= world_size
         self.state = TrainerState.PARALLEL
 
-    def find_lr(self, start_lr: float = 1e-7, end_lr: float = 10,
-                num_it: int = 100, stop_div: bool = True,
-                skip_start: int = 10, skip_end: int = 5, suggestion: bool = True):
+    def find_lr(
+        self,
+        start_lr: float = 1e-7,
+        end_lr: float = 10,
+        num_it: int = 100,
+        stop_div: bool = True,
+        skip_start: int = 10,
+        skip_end: int = 5,
+        suggestion: bool = True,
+    ):
         assert self.state == TrainerState.BASE
         self.old_scheduler = self.scheduler
         self.scheduler = LRFinder(self.optimizer, start_lr, end_lr, num_it, stop_div)
@@ -300,7 +346,7 @@ class BaseTrainer:
                 loss = self.loss_function(output, y)
                 loss = loss.mean()
                 if (loss > 40 * best_loss or torch.isnan(loss).sum() != 0) and stop_div:
-                    print('loss diverge, stop.')
+                    print("loss diverge, stop.")
                     break
                 loss.backward()
                 self.optimizer.step()
@@ -308,10 +354,15 @@ class BaseTrainer:
                 # record and plot loss and metrics
                 loss_meter.update(loss.item())
                 best_loss = min(loss.item(), best_loss)
-                lr = self.optimizer.param_groups[0]['lr']
+                lr = self.optimizer.param_groups[0]["lr"]
                 lrs.append(lr)
                 smooth_losses.append(loss_meter.avg)
-                bar_vals = {'it': it, 'phase': 'train', 'loss': loss_meter.avg, 'lr': lr}
+                bar_vals = {
+                    "it": it,
+                    "phase": "train",
+                    "loss": loss_meter.avg,
+                    "lr": lr,
+                }
                 bar.set_postfix(bar_vals)
                 it += 1
         lrs = split_list(lrs, skip_start, skip_end)
@@ -321,21 +372,23 @@ class BaseTrainer:
         ax.plot(lrs, losses)
         ax.set_ylabel("Loss")
         ax.set_xlabel("Learning Rate")
-        ax.set_xscale('log')
-        ax.xaxis.set_major_formatter(plt.FormatStrFormatter('%.0e'))
+        ax.set_xscale("log")
+        ax.xaxis.set_major_formatter(plt.FormatStrFormatter("%.0e"))
         if suggestion:
             try:
                 mg = (np.gradient(np.array(losses))).argmin()
             except:
-                print("Failed to compute the gradients, there might not be enough points.")
+                print(
+                    "Failed to compute the gradients, there might not be enough points."
+                )
                 return
             print(f"Min numerical gradient: {lrs[mg]:.2E}")
-            ax.plot(lrs[mg], losses[mg], markersize=10, marker='o', color='red')
+            ax.plot(lrs[mg], losses[mg], markersize=10, marker="o", color="red")
             ml = np.argmin(losses)
             print(f"Min loss divided by 10: {lrs[ml] / 10:.2E}")
         fig: figure.Figure
         ax: axes.Axes
-        fig.savefig(os.path.join(self.output_dir, 'lr.jpg'))
+        fig.savefig(os.path.join(self.output_dir, "lr.jpg"))
         # reset scheduler
         self.scheduler = self.old_scheduler
 
@@ -346,23 +399,40 @@ class BaseTrainer:
         # if convert_sync_batchnorm:
         #     SBN = SyncBatchNorm if self.cfg.solver.ddp_version == 'torch' else ESBN
         #     self.model = SBN.convert_sync_batchnorm(self.model)
-        self.model = DistributedDataParallel(self.model, [local_rank],
-                                             output_device=local_rank,
-                                             broadcast_buffers=self.cfg.solver.broadcast_buffers,
-                                             find_unused_parameters=self.cfg.solver.find_unused_parameters)
+        self.model = DistributedDataParallel(
+            self.model,
+            [local_rank],
+            output_device=local_rank,
+            broadcast_buffers=self.cfg.solver.broadcast_buffers,
+            find_unused_parameters=self.cfg.solver.find_unused_parameters,
+        )
         self.old_train_dl = self.train_dl
         train_sampler = DistributedSampler(self.train_dl.dataset, shuffle=True)
-        new_train_dl = DataLoader(self.train_dl.dataset, self.train_dl.batch_size, shuffle=False,
-                                  sampler=train_sampler, num_workers=self.train_dl.num_workers,
-                                  collate_fn=self.train_dl.collate_fn, pin_memory=self.train_dl.pin_memory,
-                                  timeout=self.train_dl.timeout, worker_init_fn=self.train_dl.worker_init_fn)
+        new_train_dl = DataLoader(
+            self.train_dl.dataset,
+            self.train_dl.batch_size,
+            shuffle=False,
+            sampler=train_sampler,
+            num_workers=self.train_dl.num_workers,
+            collate_fn=self.train_dl.collate_fn,
+            pin_memory=self.train_dl.pin_memory,
+            timeout=self.train_dl.timeout,
+            worker_init_fn=self.train_dl.worker_init_fn,
+        )
         self.train_dl = new_train_dl
         self.old_valid_dl = self.valid_dl
         valid_sampler = DistributedSampler(self.valid_dl.dataset, shuffle=False)
-        new_valid_dl = DataLoader(self.valid_dl.dataset, self.valid_dl.batch_size, shuffle=False,
-                                  sampler=valid_sampler, num_workers=self.valid_dl.num_workers,
-                                  collate_fn=self.valid_dl.collate_fn, pin_memory=self.valid_dl.pin_memory,
-                                  timeout=self.valid_dl.timeout, worker_init_fn=self.valid_dl.worker_init_fn)
+        new_valid_dl = DataLoader(
+            self.valid_dl.dataset,
+            self.valid_dl.batch_size,
+            shuffle=False,
+            sampler=valid_sampler,
+            num_workers=self.valid_dl.num_workers,
+            collate_fn=self.valid_dl.collate_fn,
+            pin_memory=self.valid_dl.pin_memory,
+            timeout=self.valid_dl.timeout,
+            worker_init_fn=self.valid_dl.worker_init_fn,
+        )
         self.valid_dl = new_valid_dl
         if isinstance(self.scheduler, OneCycleScheduler) and self.global_steps == 0:
             world_size = get_world_size()
@@ -372,41 +442,49 @@ class BaseTrainer:
         self.state = TrainerState.DISTRIBUTEDPARALLEL
 
     def save(self, epoch):
-        if self.save_mode == 'epoch':
-            name = os.path.join(self.output_dir, 'model_epoch_%06d.pth' % epoch)
+        if self.save_mode == "epoch":
+            name = os.path.join(self.output_dir, "model_epoch_%06d.pth" % epoch)
         else:
-            name = os.path.join(self.output_dir, 'model_iteration_%06d.pth' % self.global_steps)
-        net_sd = self.model.module.state_dict() if hasattr(self.model, 'module') else self.model.state_dict()
-        d = {'model': net_sd,
-             'optimizer': self.optimizer.state_dict(),
-             'scheduler': self.scheduler.state_dict(),
-             'epoch': epoch,
-             'best_val_loss': self.best_val_loss,
-             'global_steps': self.global_steps}
+            name = os.path.join(
+                self.output_dir, "model_iteration_%06d.pth" % self.global_steps
+            )
+        net_sd = (
+            self.model.module.state_dict()
+            if hasattr(self.model, "module")
+            else self.model.state_dict()
+        )
+        d = {
+            "model": net_sd,
+            "optimizer": self.optimizer.state_dict(),
+            "scheduler": self.scheduler.state_dict(),
+            "epoch": epoch,
+            "best_val_loss": self.best_val_loss,
+            "global_steps": self.global_steps,
+        }
         torch.save(d, name)
 
     def load(self, name: str):
-        if name.endswith('.pth'):
+        if name.endswith(".pth"):
             name = name[:-4]
-        name = os.path.join(self.output_dir, name + '.pth')
-        d = torch.load(name, 'cpu')
-        net_sd = d['model']
-        if hasattr(self.model, 'module'):
+        name = os.path.join(self.output_dir, name + ".pth")
+        d = torch.load(name, "cpu")
+        net_sd = d["model"]
+        if hasattr(self.model, "module"):
             self.model.module.load_state_dict(net_sd, strict=False)
         else:
             self.model.load_state_dict(net_sd, strict=False)
-        self.optimizer.load_state_dict(d['optimizer'])
-        self.scheduler.load_state_dict(d['scheduler'])
-        self.begin_epoch = d['epoch']
-        self.best_val_loss = d['best_val_loss']
-        if 'global_steps' in d:  # compat
-            self.global_steps = d['global_steps']
+        self.optimizer.load_state_dict(d["optimizer"])
+        self.scheduler.load_state_dict(d["scheduler"])
+        self.begin_epoch = d["epoch"]
+        self.best_val_loss = d["best_val_loss"]
+        if "global_steps" in d:  # compat
+            self.global_steps = d["global_steps"]
 
     def load_model(self, name):
-        d = torch.load(name, 'cpu')
-        if 'model' in d and 'optimizer' in d:
-            d = d['model']
-        if hasattr(self.model, 'module'):
+        d = torch.load(name, "cpu")
+        if "model" in d and "optimizer" in d:
+            d = d["model"]
+        if hasattr(self.model, "module"):
             self.model.module.load_state_dict(d, strict=False)
         else:
             self.model.load_state_dict(d, strict=False)
@@ -418,25 +496,31 @@ class BaseTrainer:
         return self._tb_writer
 
     def resume(self):
-        if self.cfg.solver.load == '' and self.cfg.solver.load_model == '':
-            warnings.warn('try to resume without loading anything.')
-        if self.cfg.solver.load_model != '':
-            logger.info(colored('loading model from %s' % self.cfg.solver.load_model, 'red'))
+        if self.cfg.solver.load == "" and self.cfg.solver.load_model == "":
+            warnings.warn("try to resume without loading anything.")
+        if self.cfg.solver.load_model != "":
+            logger.info(
+                colored("loading model from %s" % self.cfg.solver.load_model, "red")
+            )
             self.load_model(self.cfg.solver.load_model)
-        if self.cfg.solver.load != '':
-            if self.cfg.solver.load == 'latest':
-                ckpts = list(filter(lambda x: x.endswith('.pth'), os.listdir(self.output_dir)))
+        if self.cfg.solver.load != "":
+            if self.cfg.solver.load == "latest":
+                ckpts = list(
+                    filter(lambda x: x.endswith(".pth"), os.listdir(self.output_dir))
+                )
                 if len(ckpts) == 0:
-                    logger.warning(f'No ckpt found in {self.output_dir}')
+                    logger.warning(f"No ckpt found in {self.output_dir}")
                 else:
-                    last_ckpt = sorted(ckpts, key=lambda x: int(x[:-4].split('_')[-1]), reverse=True)[0]
-                    logger.info(f'Load the lastest checkpoint {last_ckpt}')
+                    last_ckpt = sorted(
+                        ckpts, key=lambda x: int(x[:-4].split("_")[-1]), reverse=True
+                    )[0]
+                    logger.info(f"Load the lastest checkpoint {last_ckpt}")
                     self.load(last_ckpt)
             else:
                 load = self.cfg.solver.load
                 if isinstance(self.cfg.solver.load, int):
-                    load = f'model_{self.save_mode}_{load:06d}'
-                logger.info('loading checkpoint from %s' % load, 'red')
+                    load = f"model_{self.save_mode}_{load:06d}"
+                logger.info("loading checkpoint from %s" % load, "red")
                 self.load(self.cfg.solver.load)
 
     def try_to_save(self, epoch, flag):
@@ -446,10 +530,14 @@ class BaseTrainer:
             if flag == self.save_mode:
                 self.save(epoch)
         else:
-            assert self.save_mode == 'epoch'
+            assert self.save_mode == "epoch"
             if self.val_loss < self.best_val_loss:
                 logger.info(
-                    colored('Better model found at epoch'
-                            ' %d with val_loss %.4f.' % (epoch, self.val_loss), 'red'))
+                    colored(
+                        "Better model found at epoch"
+                        " %d with val_loss %.4f." % (epoch, self.val_loss),
+                        "red",
+                    )
+                )
                 self.save(epoch)
                 self.best_val_loss = self.val_loss

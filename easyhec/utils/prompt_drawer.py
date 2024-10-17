@@ -25,7 +25,9 @@ class DrawingMode(Enum):
 
 
 class PromptDrawer(object):
-    def __init__(self, window_name="Prompt Drawer", screen_scale=1.0, sam_checkpoint=""):
+    def __init__(
+        self, window_name="Prompt Drawer", screen_scale=1.0, sam_checkpoint=""
+    ):
         self.window_name = window_name  # Name for our window
         self.reset()
         self.screen_scale = screen_scale * 1.2
@@ -73,10 +75,12 @@ class PromptDrawer(object):
                 self.drawing = False
                 self.boxes[-1, 2] = x
                 self.boxes[-1, 3] = y
-                self.boxes[-1, 0], self.boxes[-1, 2] = min(self.boxes[-1, 0], self.boxes[-1, 2]), max(self.boxes[-1, 0],
-                                                                                                      self.boxes[-1, 2])
-                self.boxes[-1, 1], self.boxes[-1, 3] = min(self.boxes[-1, 1], self.boxes[-1, 3]), max(self.boxes[-1, 1],
-                                                                                                      self.boxes[-1, 3])
+                self.boxes[-1, 0], self.boxes[-1, 2] = min(
+                    self.boxes[-1, 0], self.boxes[-1, 2]
+                ), max(self.boxes[-1, 0], self.boxes[-1, 2])
+                self.boxes[-1, 1], self.boxes[-1, 3] = min(
+                    self.boxes[-1, 1], self.boxes[-1, 3]
+                ), max(self.boxes[-1, 1], self.boxes[-1, 3])
                 self.detect()
             elif event == cv2.EVENT_MOUSEMOVE:
                 if self.drawing:
@@ -141,7 +145,9 @@ class PromptDrawer(object):
         if not hasattr(self, "ratio"):
             output = subprocess.check_output(["xrandr"]).decode("utf-8")
             current_mode = [line for line in output.splitlines() if "*" in line][0]
-            screen_width, screen_height = [int(x) for x in current_mode.split()[0].split("x")]
+            screen_width, screen_height = [
+                int(x) for x in current_mode.split()[0].split("x")
+            ]
             scale = self.screen_scale
             screen_w = int(screen_width / scale)
             screen_h = int(screen_height / scale)
@@ -158,22 +164,34 @@ class PromptDrawer(object):
 
         while not self.done:
             tmp = image_to_show.copy()
-            tmp = cv2.circle(tmp, self.current, radius=2,
-                             color=(0, 0, 255),
-                             thickness=-1)
+            tmp = cv2.circle(
+                tmp, self.current, radius=2, color=(0, 0, 255), thickness=-1
+            )
             for box, box_label in zip(self.boxes, self.box_labels):
                 color = (0, 255, 0) if box_label == 1 else (0, 0, 255)
-                cv2.rectangle(tmp, (int(box[0]), int(box[1])), (int(box[2]), int(box[3])), color, 2)
+                cv2.rectangle(
+                    tmp,
+                    (int(box[0]), int(box[1])),
+                    (int(box[2]), int(box[3])),
+                    color,
+                    2,
+                )
             if self.points.shape[0] > 0:
                 for ptidx, pt in enumerate(self.points):
                     color = (0, 255, 0) if self.labels[ptidx] == 1 else (0, 0, 255)
-                    tmp = cv2.circle(tmp, (int(pt[0]), int(pt[1])), radius=5,
-                                     color=color,
-                                     thickness=-1)
+                    tmp = cv2.circle(
+                        tmp,
+                        (int(pt[0]), int(pt[1])),
+                        radius=5,
+                        color=color,
+                        thickness=-1,
+                    )
             if self.mask is not None:
                 m = self.mask
                 mask_to_show = cv2.resize(m.astype(np.uint8), target_size).astype(bool)
-                tmp = plt_utils.vis_mask(tmp, mask_to_show.astype(np.uint8), color=[0, 255, 0], alpha=0.5).astype(np.uint8)
+                tmp = plt_utils.vis_mask(
+                    tmp, mask_to_show.astype(np.uint8), color=[0, 255, 0], alpha=0.5
+                ).astype(np.uint8)
             cv2.imshow(self.window_name, tmp)
             waittime = 50
             key = cv2.waitKey(waittime)
@@ -182,16 +200,16 @@ class PromptDrawer(object):
                 self.done = True
             if key == 27:  # ESC hit
                 self.done = True
-            elif key == ord('r'):
+            elif key == ord("r"):
                 print("Reset")
                 self.reset()
-            elif key == ord('p'):
+            elif key == ord("p"):
                 print("Switch to point mode")
                 self.mode = DrawingMode.Point
-            elif key == ord('b'):
+            elif key == ord("b"):
                 print("Switch to box mode")
                 self.mode = DrawingMode.Box
-            elif key == ord('z'):
+            elif key == ord("z"):
                 print("Undo")
                 if self.mode == DrawingMode.Point and len(self.points) > 0:
                     self.points = self.points[:-1]
@@ -223,12 +241,20 @@ if __name__ == "__main__":
     parser.add_argument("--dont_save", action="store_true")
     args = parser.parse_args()
 
-    print('Usage: drag mouse to draw bounding boxes. Ctrl+mouse to draw negative bounding boxes. Press "p" to switch to point mode, "b" to switch to box mode, "z" to undo, "r" to reset, "ESC" to finish.')
+    print(
+        'Usage: drag mouse to draw bounding boxes. Ctrl+mouse to draw negative bounding boxes. Press "p" to switch to point mode, "b" to switch to box mode, "z" to undo, "r" to reset, "ESC" to finish.'
+    )
 
     i = 0
-    sam_checkpoint="third_party/segment_anything/sam_vit_h_4b8939.pth"
-    if not osp.exists(sam_checkpoint) or hashlib.md5(open(sam_checkpoint, 'rb').read()).hexdigest() != "4b8939a88964f0f4ff5f5b2642c598a6":
-        os.system('wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth -P third_party/segment_anything')
+    sam_checkpoint = "third_party/segment_anything/sam_vit_h_4b8939.pth"
+    if (
+        not osp.exists(sam_checkpoint)
+        or hashlib.md5(open(sam_checkpoint, "rb").read()).hexdigest()
+        != "4b8939a88964f0f4ff5f5b2642c598a6"
+    ):
+        os.system(
+            "wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth -P third_party/segment_anything"
+        )
     drawer = PromptDrawer(screen_scale=3.0, sam_checkpoint=sam_checkpoint)
     while i < len(args.img_paths):
         img_path = args.img_paths[i]
@@ -239,7 +265,9 @@ if __name__ == "__main__":
                 if args.output_dir == "":
                     out_path = img_path[:-4] + "mask" + img_path[-4:]
                 else:
-                    out_path = osp.join(args.output_dir, osp.basename(img_path[:-4] + '.png'))
+                    out_path = osp.join(
+                        args.output_dir, osp.basename(img_path[:-4] + ".png")
+                    )
                     os.makedirs(args.output_dir, exist_ok=True)
                 imageio.imwrite(out_path, ((mask > 0) * 255).astype(np.uint8))
         i += 1

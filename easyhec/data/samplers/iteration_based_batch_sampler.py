@@ -3,6 +3,7 @@ class IterationBasedBatchSampler:
     Wraps a BatchSampler, resampling from it until
     a specified number of iterations have been sampled
     """
+
     def __init__(self, batch_sampler, num_iterations, start_iter=0):
         self.batch_sampler = batch_sampler
         self.num_iterations = num_iterations

@@ -8,7 +8,9 @@ from easyhec.engine.defaults import default_argument_parser, setup
 
 
 def main():
-    parser = default_argument_parser(default_config_file="configs/xarm7/simulate/mask_data.yaml")
+    parser = default_argument_parser(
+        default_config_file="configs/xarm7/simulate/mask_data.yaml"
+    )
     args = parser.parse_args()
     total_cfg = setup(args)
     cfg = total_cfg.sim_mask_data
@@ -56,5 +58,5 @@ def main():
         os.system("mv %s %s" % (campose_files[i], dst_campose_file))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

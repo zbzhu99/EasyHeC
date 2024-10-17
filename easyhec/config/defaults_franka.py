@@ -11,9 +11,11 @@ _C.backup_src = True
 _C.sim_mask_data = CN()
 _C.sim_mask_data.width = 1920  # width of the rendered image
 _C.sim_mask_data.height = 1080  # height of the rendered image
-_C.sim_mask_data.K = [[1.35220691e+03, 0.00000000e+00, 9.63346497e+02],
-                        [0.00000000e+00, 1.35242883e+03, 5.29396179e+02],
-                        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]
+_C.sim_mask_data.K = [
+    [1.35220691e03, 0.00000000e00, 9.63346497e02],
+    [0.00000000e00, 1.35242883e03, 5.29396179e02],
+    [0.00000000e00, 0.00000000e00, 1.00000000e00],
+]
 _C.sim_mask_data.outdir = ""  # output directory of the rendered data
 _C.sim_mask_data.random_qpos_number = 100000  # number of random qpos to sample
 _C.sim_mask_data.envmaps = []  # list of envmap names
@@ -29,9 +31,11 @@ _C.sim_mask_data.add_desk_cube.pose = [-0.4, -0.1, -0.5]
 _C.sim_mask_data.add_desk_cube.color = [0, 0, 0]
 
 _C.sim_pvnet_data = CN()
-_C.sim_pvnet_data.K = [[1.35220691e+03, 0.00000000e+00, 9.63346497e+02],
-                        [0.00000000e+00, 1.35242883e+03, 5.29396179e+02],
-                        [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]
+_C.sim_pvnet_data.K = [
+    [1.35220691e03, 0.00000000e00, 9.63346497e02],
+    [0.00000000e00, 1.35242883e03, 5.29396179e02],
+    [0.00000000e00, 0.00000000e00, 1.00000000e00],
+]
 _C.sim_pvnet_data.width = 1920  # width of the rendered image
 _C.sim_pvnet_data.height = 1080  # height of the rendered image
 _C.sim_pvnet_data.min_dist = 0.5
@@ -65,26 +69,28 @@ _C.model.device = "cuda"
 
 _C.model.rbsolver = CN()
 _C.model.rbsolver.init_Tc_c2b = []
-_C.model.rbsolver.start_qpos = [5.928617003472516e-05,
-                                    -0.7848036409260933,
-                                    -0.000308854746172659,
-                                    -2.357726806912310,
-                                    -0.00011798564528483742,
-                                    1.570464383098814,
-                                    0.7852387161304554]
+_C.model.rbsolver.start_qpos = [
+    5.928617003472516e-05,
+    -0.7848036409260933,
+    -0.000308854746172659,
+    -2.357726806912310,
+    -0.00011798564528483742,
+    1.570464383098814,
+    0.7852387161304554,
+]
 _C.model.rbsolver.lrs = []
-_C.model.rbsolver.mesh_paths = [ "assets/franka/franka_description/meshes/visual/link1.dae",
-      "assets/franka/franka_description/meshes/visual/link2.dae",
-      "assets/franka/franka_description/meshes/visual/link3.dae",
-      "assets/franka/franka_description/meshes/visual/link4.dae",
-      "assets/franka/franka_description/meshes/visual/link5.dae",
-      "assets/franka/franka_description/meshes/visual/link6.dae",
-      "assets/franka/franka_description/meshes/visual/link7.dae",
-                  ]
+_C.model.rbsolver.mesh_paths = [
+    "assets/franka/franka_description/meshes/visual/link1.dae",
+    "assets/franka/franka_description/meshes/visual/link2.dae",
+    "assets/franka/franka_description/meshes/visual/link3.dae",
+    "assets/franka/franka_description/meshes/visual/link4.dae",
+    "assets/franka/franka_description/meshes/visual/link5.dae",
+    "assets/franka/franka_description/meshes/visual/link6.dae",
+    "assets/franka/franka_description/meshes/visual/link7.dae",
+]
 _C.model.rbsolver.H = 1080
 _C.model.rbsolver.W = 1920
 _C.model.rbsolver.urdf_path = "assets/franka/urdf/franka_another.urdf"
-
 
 
 _C.model.space_explorer = CN()
@@ -97,9 +103,11 @@ _C.model.space_explorer.n_sample_qposes = 100  # for random
 _C.model.space_explorer.sample_dof = 6
 _C.model.space_explorer.width = 1920
 _C.model.space_explorer.height = 1080
-_C.model.space_explorer.K = [[1.35220691e+03, 0.00000000e+00, 9.63346497e+02],
-                              [0.00000000e+00, 1.35242883e+03, 5.29396179e+02],
-                              [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]]
+_C.model.space_explorer.K = [
+    [1.35220691e03, 0.00000000e00, 9.63346497e02],
+    [0.00000000e00, 1.35242883e03, 5.29396179e02],
+    [0.00000000e00, 0.00000000e00, 1.00000000e00],
+]
 _C.model.space_explorer.urdf_path = ""
 _C.model.space_explorer.srdf_path = ""
 _C.model.space_explorer.move_group = ""
@@ -119,18 +127,22 @@ _C.model.space_explorer.collision_check.planning_time = 1.0
 
 _C.model.rbsolver_iter = CN()
 _C.model.rbsolver_iter.data_dir = ""
-_C.model.rbsolver_iter.start_qpos = [5.928617003472516e-05,
-                                    -0.7848036409260933,
-                                    -0.000308854746172659,
-                                    -2.357726806912310,
-                                    -0.00011798564528483742,
-                                    1.570464383098814,
-                                    0.7852387161304554]
+_C.model.rbsolver_iter.start_qpos = [
+    5.928617003472516e-05,
+    -0.7848036409260933,
+    -0.000308854746172659,
+    -2.357726806912310,
+    -0.00011798564528483742,
+    1.570464383098814,
+    0.7852387161304554,
+]
 _C.model.rbsolver_iter.start_index = 0  # for data pool
-_C.model.rbsolver_iter.init_Tc_c2b =      [[-0.99548723, -0.09197257, -0.02337417,  0.02048038],
-                                    [ 0.01794234,  0.05944901, -0.9980701,   0.50420089],
-                                    [ 0.09318464, -0.99398534, -0.05753053, 0.80130991],
-                                    [ 0.,          0.,          0.,          1.        ]]
+_C.model.rbsolver_iter.init_Tc_c2b = [
+    [-0.99548723, -0.09197257, -0.02337417, 0.02048038],
+    [0.01794234, 0.05944901, -0.9980701, 0.50420089],
+    [0.09318464, -0.99398534, -0.05753053, 0.80130991],
+    [0.0, 0.0, 0.0, 1.0],
+]
 
 _C.model.rbsolver_iter.use_realarm = CN()
 _C.model.rbsolver_iter.use_realarm.enable = True
@@ -142,9 +154,13 @@ _C.model.rbsolver_iter.use_realarm.timestep = 0.1
 _C.model.rbsolver_iter.use_realarm.safety_factor = 3
 _C.model.rbsolver_iter.use_realarm.use_sam = CN()
 _C.model.rbsolver_iter.use_realarm.use_sam.enable = True  # use SAM to predict mask
-_C.model.rbsolver_iter.use_realarm.use_sam.sam_checkpoint = "models/sam_vit_h_4b8939.pth"
+_C.model.rbsolver_iter.use_realarm.use_sam.sam_checkpoint = (
+    "models/sam_vit_h_4b8939.pth"
+)
 
-_C.model.rbsolver_iter.pointrend_cfg_file = "configs/InstanceSegmentation/pointrend_rcnn_R_50_FPN_3x_xarm.yaml"
+_C.model.rbsolver_iter.pointrend_cfg_file = (
+    "configs/InstanceSegmentation/pointrend_rcnn_R_50_FPN_3x_xarm.yaml"
+)
 _C.model.rbsolver_iter.pointrend_model_weight = "output/model_0099999.pth"
 
 _C.solver = CN()
@@ -166,20 +182,20 @@ _C.solver.num_iters = 1000
 _C.solver.min_factor = 0.1
 _C.solver.log_interval = 1
 
-_C.solver.optimizer = 'Adam'
-_C.solver.scheduler = 'ConstantScheduler'
+_C.solver.optimizer = "Adam"
+_C.solver.scheduler = "ConstantScheduler"
 _C.solver.scheduler_decay_thresh = 0.00005
 _C.solver.do_grad_clip = False
-_C.solver.grad_clip_type = 'norm'  # norm or value
+_C.solver.grad_clip_type = "norm"  # norm or value
 _C.solver.grad_clip = 1.0
 _C.solver.ds_len = -1
 _C.solver.batch_size = 1
-_C.solver.loss_function = ''
+_C.solver.loss_function = ""
 ####save ckpt configs#####
 _C.solver.save_min_loss = 20.0
 _C.solver.save_every = False
 _C.solver.save_freq = 1
-_C.solver.save_mode = 'epoch'  # epoch or iteration
+_C.solver.save_mode = "epoch"  # epoch or iteration
 _C.solver.val_freq = 1
 _C.solver.save_last_only = False
 _C.solver.empty_cache = True
@@ -195,7 +211,7 @@ _C.solver.save_scheduler = True
 
 _C.dataloader = CN()
 _C.dataloader.num_workers = 0
-_C.dataloader.collator = 'DefaultBatchCollator'
+_C.dataloader.collator = "DefaultBatchCollator"
 _C.dataloader.pin_memory = False
 
 _C.datasets = CN()
@@ -211,7 +227,7 @@ _C.paths_catalog = os.path.join(os.path.dirname(__file__), "paths_catalog.py")
 _C.test = CN()
 _C.test.batch_size = 1
 _C.test.evaluators = []
-_C.test.visualizer = ''
+_C.test.visualizer = ""
 _C.test.force_recompute = True
 _C.test.do_evaluation = False
 _C.test.do_visualization = False

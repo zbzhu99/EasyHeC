@@ -40,7 +40,9 @@ class PointDrawer(object):
                 label = 0
             else:
                 label = 1
-            print(f"Adding point #{len(self.points)} with position({x},{y}), label {label}")
+            print(
+                f"Adding point #{len(self.points)} with position({x},{y}), label {label}"
+            )
             self.points = np.concatenate((self.points, np.array([[x, y]])), axis=0)
             self.labels = np.concatenate((self.labels, np.array([label])), axis=0)
 
@@ -66,7 +68,9 @@ class PointDrawer(object):
 
         output = subprocess.check_output(["xrandr"]).decode("utf-8")
         current_mode = [line for line in output.splitlines() if "*" in line][0]
-        screen_width, screen_height = [int(x) for x in current_mode.split()[0].split("x")]
+        screen_width, screen_height = [
+            int(x) for x in current_mode.split()[0].split("x")
+        ]
         scale = self.screen_scale
         screen_w = int(screen_width / scale)
         screen_h = int(screen_height / scale)
@@ -84,17 +88,23 @@ class PointDrawer(object):
 
         while not self.done:
             tmp = image_to_show.copy()
-            tmp = cv2.circle(tmp, self.current, radius=2,
-                             color=(0, 0, 255),
-                             thickness=-1)
+            tmp = cv2.circle(
+                tmp, self.current, radius=2, color=(0, 0, 255), thickness=-1
+            )
             if self.points.shape[0] > 0:
                 for ptidx, pt in enumerate(self.points):
                     color = (0, 255, 0) if self.labels[ptidx] == 1 else (0, 0, 255)
-                    tmp = cv2.circle(tmp, (int(pt[0]), int(pt[1])), radius=5,
-                                     color=color,
-                                     thickness=-1)
+                    tmp = cv2.circle(
+                        tmp,
+                        (int(pt[0]), int(pt[1])),
+                        radius=5,
+                        color=color,
+                        thickness=-1,
+                    )
             if self.mask is not None:
-                mask_to_show = cv2.resize(self.mask.astype(np.uint8), target_size).astype(bool)
+                mask_to_show = cv2.resize(
+                    self.mask.astype(np.uint8), target_size
+                ).astype(bool)
                 tmp = tmp / 255.0
                 tmp[mask_to_show] *= 0.5
                 tmp[mask_to_show] += 0.5
@@ -116,5 +126,5 @@ def main():
     print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -9,7 +9,11 @@ from pytorch3d.structures import Meshes
 
 from easyhec.structures.nvdiffrast_renderer import NVDiffrastRenderer
 from easyhec.structures.sapien_kin import SAPIENKinematicsModelStandalone
-from easyhec.utils.utils_3d import matrix_3x4_to_4x4, create_center_radius, transform_points
+from easyhec.utils.utils_3d import (
+    matrix_3x4_to_4x4,
+    create_center_radius,
+    transform_points,
+)
 from easyhec.structures.robot_mapping import robot_mapping
 
 
@@ -19,12 +23,18 @@ class NVdiffrastRenderMeshApiHelper:
 
     @staticmethod
     def get_renderer(H, W):
-        if NVdiffrastRenderMeshApiHelper._renderer is None or H != NVdiffrastRenderMeshApiHelper.H or W != NVdiffrastRenderMeshApiHelper.W:
+        if (
+            NVdiffrastRenderMeshApiHelper._renderer is None
+            or H != NVdiffrastRenderMeshApiHelper.H
+            or W != NVdiffrastRenderMeshApiHelper.W
+        ):
             NVdiffrastRenderMeshApiHelper._renderer = NVDiffrastRenderer((H, W))
         return NVdiffrastRenderMeshApiHelper._renderer
 
 
-def nvdiffrast_render_mesh_api(mesh: trimesh.Trimesh, object_pose, H, W, K, anti_aliasing=True):
+def nvdiffrast_render_mesh_api(
+    mesh: trimesh.Trimesh, object_pose, H, W, K, anti_aliasing=True
+):
     """
     :param mesh: trimesh mesh
     :param object_pose: object pose in camera coordinate
@@ -38,12 +48,16 @@ def nvdiffrast_render_mesh_api(mesh: trimesh.Trimesh, object_pose, H, W, K, anti
     faces = torch.from_numpy(mesh.faces).int().cuda()
     K = torch.from_numpy(K).float().cuda()
     object_pose = torch.from_numpy(object_pose).float().cuda()
-    mask = renderer.render_mask(verts, faces, K, object_pose, anti_aliasing=anti_aliasing)
+    mask = renderer.render_mask(
+        verts, faces, K, object_pose, anti_aliasing=anti_aliasing
+    )
     mask = mask.cpu().numpy().astype(bool)
     return mask
 
 
-def nvdiffrast_render_meshes_api(meshes: List[trimesh.Trimesh], object_poses, H, W, K, return_ndarray=True):
+def nvdiffrast_render_meshes_api(
+    meshes: List[trimesh.Trimesh], object_poses, H, W, K, return_ndarray=True
+):
     """
     :param meshes: list of trimesh mesh
     :param object_poses: list of object poses in camera coordinate
@@ -67,7 +81,9 @@ def nvdiffrast_render_meshes_api(meshes: List[trimesh.Trimesh], object_poses, H,
     return mask
 
 
-def nvdiffrast_parallel_render_meshes_api(meshes: List[trimesh.Trimesh], object_poses, H, W, K, return_ndarray=True):
+def nvdiffrast_parallel_render_meshes_api(
+    meshes: List[trimesh.Trimesh], object_poses, H, W, K, return_ndarray=True
+):
     """
     :param meshes: list of trimesh mesh
     :param object_poses: list of object poses in camera coordinate
@@ -106,6 +122,7 @@ class RenderXarmApiHelper:
         if RenderXarmApiHelper.meshes is None:
             RenderXarmApiHelper.meshes = {}
             from easyhec.structures.xarm_mapping import link_name_mesh_path_mapping
+
             for k, v in link_name_mesh_path_mapping.items():
                 if v != "":
                     RenderXarmApiHelper.meshes[k] = trimesh.load(v, force="mesh")
@@ -113,7 +130,10 @@ class RenderXarmApiHelper:
 
     @staticmethod
     def get_sk(urdf_path):
-        if RenderXarmApiHelper.sk is None or urdf_path != RenderXarmApiHelper._urdf_path:
+        if (
+            RenderXarmApiHelper.sk is None
+            or urdf_path != RenderXarmApiHelper._urdf_path
+        ):
             RenderXarmApiHelper.sk = SAPIENKinematicsModelStandalone(urdf_path)
             RenderXarmApiHelper._urdf_path = urdf_path
         return RenderXarmApiHelper.sk
@@ -129,6 +149,7 @@ class RenderFrankaApiHelper:
         if RenderFrankaApiHelper.meshes is None:
             RenderFrankaApiHelper.meshes = {}
             from easyhec.structures.franka_mapping import link_name_mesh_path_mapping
+
             for k, v in link_name_mesh_path_mapping.items():
                 if v != "":
                     RenderFrankaApiHelper.meshes[k] = trimesh.load(v, force="mesh")
@@ -136,25 +157,35 @@ class RenderFrankaApiHelper:
 
     @staticmethod
     def get_sk(urdf_path):
-        if RenderFrankaApiHelper.sk is None or urdf_path != RenderFrankaApiHelper._urdf_path:
+        if (
+            RenderFrankaApiHelper.sk is None
+            or urdf_path != RenderFrankaApiHelper._urdf_path
+        ):
             RenderFrankaApiHelper.sk = SAPIENKinematicsModelStandalone(urdf_path)
             RenderFrankaApiHelper._urdf_path = urdf_path
         return RenderFrankaApiHelper.sk
 
 
-def nvdiffrast_render_xarm_api(urdf_path, robot_pose, qpos, H, W, K, return_ndarray=True):
+def nvdiffrast_render_xarm_api(
+    urdf_path, robot_pose, qpos, H, W, K, return_ndarray=True
+):
     xarm_meshes = RenderXarmApiHelper.get_meshes()
     sk = RenderXarmApiHelper.get_sk(urdf_path)
     names = [link.name for link in sk.robot.get_links()]
     poses = []
     meshes = []
-    num = 8
+    num = 7
     for i in range(num):
-        pose = robot_pose @ sk.compute_forward_kinematics(qpos, i + 1).to_transformation_matrix()
+        pose = (
+            robot_pose
+            @ sk.compute_forward_kinematics(qpos, i + 1).to_transformation_matrix()
+        )
         mesh = xarm_meshes[names[i + 1]]
         meshes.append(mesh)
         poses.append(pose)
-    mask = nvdiffrast_render_meshes_api(meshes, poses, H, W, K, return_ndarray=return_ndarray)
+    mask = nvdiffrast_render_meshes_api(
+        meshes, poses, H, W, K, return_ndarray=return_ndarray
+    )
     return mask
 
 
@@ -166,34 +197,56 @@ def nvdiffrast_render_franka_api(urdf_path, Tc_c2b, qpos, H, W, K, return_ndarra
     meshes = []
     num = 9
     for i in range(num):
-        pose = Tc_c2b @ sk.compute_forward_kinematics(qpos, i).to_transformation_matrix()
+        pose = (
+            Tc_c2b @ sk.compute_forward_kinematics(qpos, i).to_transformation_matrix()
+        )
         if names[i] not in franka_meshes:
             continue
         mesh = franka_meshes[names[i]]
         meshes.append(mesh)
         poses.append(pose)
-    mask = nvdiffrast_render_meshes_api(meshes, poses, H, W, K, return_ndarray=return_ndarray)
+    mask = nvdiffrast_render_meshes_api(
+        meshes, poses, H, W, K, return_ndarray=return_ndarray
+    )
     return mask
 
 
-def nvdiffrast_parallel_render_xarm_api(urdf_path, robot_pose, qpos, H, W, K, return_ndarray=True):
+def nvdiffrast_parallel_render_xarm_api(
+    urdf_path, robot_pose, qpos, H, W, K, return_ndarray=True
+):
     xarm_meshes = RenderXarmApiHelper.get_meshes()
     sk = RenderXarmApiHelper.get_sk(urdf_path)
     names = [link.name for link in sk.robot.get_links()]
     poses = []
     meshes = []
-    num = 8
+    num = 7
     for i in range(num):
-        pose = robot_pose @ sk.compute_forward_kinematics(qpos, i + 1).to_transformation_matrix()
+        pose = (
+            robot_pose
+            @ sk.compute_forward_kinematics(qpos, i + 1).to_transformation_matrix()
+        )
         mesh = xarm_meshes[names[i + 1]]
         meshes.append(mesh)
         poses.append(pose)
-    mask = nvdiffrast_parallel_render_meshes_api(meshes, poses, H, W, K, return_ndarray=return_ndarray)
+    mask = nvdiffrast_parallel_render_meshes_api(
+        meshes, poses, H, W, K, return_ndarray=return_ndarray
+    )
     return mask
 
 
-def get_ring_object_poses(min_dist, max_dist, min_elev=-80, max_elev=80, ndist=5, nelev=18, nazim=12,
-                          trans_noise=0.0, endpoint=True, start_azim=0, end_azim=2 * np.pi):
+def get_ring_object_poses(
+    min_dist,
+    max_dist,
+    min_elev=-80,
+    max_elev=80,
+    ndist=5,
+    nelev=18,
+    nazim=12,
+    trans_noise=0.0,
+    endpoint=True,
+    start_azim=0,
+    end_azim=2 * np.pi,
+):
     """
     :param min_dist:
     :param max_dist:
@@ -209,8 +262,16 @@ def get_ring_object_poses(min_dist, max_dist, min_elev=-80, max_elev=80, ndist=5
     all_RT = []
     for d in dists:
         for e in elevs:
-            RT = torch.from_numpy(create_center_radius(dist=d, nrad=nazim, angle_z=e, endpoint=endpoint,
-                                                       start=start_azim, end=end_azim))
+            RT = torch.from_numpy(
+                create_center_radius(
+                    dist=d,
+                    nrad=nazim,
+                    angle_z=e,
+                    endpoint=endpoint,
+                    start=start_azim,
+                    end=end_azim,
+                )
+            )
             all_RT.append(RT)
     all_RT = torch.cat(all_RT, 0)
     poses = matrix_3x4_to_4x4(all_RT)

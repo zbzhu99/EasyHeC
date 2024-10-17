@@ -4,10 +4,18 @@ import torch
 
 def K_to_projection(K, H, W, n=0.001, f=10.0):
     fu, fv, cu, cv = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
-    proj = torch.tensor([[2 * fu / W, 0, -2 * cu / W + 1, 0],
-                         [0, 2 * fv / H, 2 * cv / H - 1, 0],
-                         [0, 0, -(f + n) / (f - n), -2 * f * n / (f - n)],
-                         [0, 0, -1, 0]]).cuda().float()
+    proj = (
+        torch.tensor(
+            [
+                [2 * fu / W, 0, -2 * cu / W + 1, 0],
+                [0, 2 * fv / H, 2 * cv / H - 1, 0],
+                [0, 0, -(f + n) / (f - n), -2 * f * n / (f - n)],
+                [0, 0, -1, 0],
+            ]
+        )
+        .cuda()
+        .float()
+    )
     return proj
 
 

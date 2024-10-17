@@ -202,9 +202,14 @@ def padded_stack(tensors, dim=0, *, out=None):
     max_dim = max(t.shape[dim] for t in tensors)
     padded_tensors = []
     for t in tensors:
-        shape_to_pad = list(t.shape[0:dim]) + [max_dim - t.shape[dim]] + list(t.shape[dim + 1:])
+        shape_to_pad = (
+            list(t.shape[0:dim]) + [max_dim - t.shape[dim]] + list(t.shape[dim + 1 :])
+        )
         padded_tensors.append(
-            torch.cat((t, torch.full(shape_to_pad, -1000, dtype=t.dtype, device=t.device)), dim=dim)
+            torch.cat(
+                (t, torch.full(shape_to_pad, -1000, dtype=t.dtype, device=t.device)),
+                dim=dim,
+            )
         )
     return torch.stack(padded_tensors, dim=dim, out=out)
 
@@ -330,17 +335,16 @@ def in1d_pytorch(ar1, ar2, assume_unique=False, invert=False):
     # b) the second condition is true (i.e. `ar1` or `ar2` may contain
     #    arbitrary objects), since then sorting is not guaranteed to work
     if len(ar2) < 10 * len(ar1) ** 0.145:
-
         if invert:
             mask = torch.ones(len(ar1), dtype=torch.bool, device=ar1.device)
             for a in ar2:
-                mask &= (ar1 != a)
+                mask &= ar1 != a
         else:
             mask = torch.zeros(len(ar1), dtype=torch.bool, device=ar1.device)
             for a in ar2:
-                mask |= (ar1 == a)
+                mask |= ar1 == a
         return mask
-    print('large condition')
+    print("large condition")
     raise NotCheckedError()
     # Otherwise use sorting
     if not assume_unique:
@@ -351,19 +355,21 @@ def in1d_pytorch(ar1, ar2, assume_unique=False, invert=False):
     # We need this to be a stable sort, so always use 'mergesort'
     # here. The values from the first array should always come before
     # the values from the second array.
-    order = torch.argsort(ar, )
+    order = torch.argsort(
+        ar,
+    )
     # order = ar.argsort(kind='mergesort')
     sar = ar[order]
     if invert:
-        bool_ar = (sar[1:] != sar[:-1])
+        bool_ar = sar[1:] != sar[:-1]
     else:
-        bool_ar = (sar[1:] == sar[:-1])
+        bool_ar = sar[1:] == sar[:-1]
     flag = torch.cat((bool_ar, [invert]))
     ret = torch.empty(ar.shape, dtype=torch.bool)
     ret[order] = flag
 
     if assume_unique:
-        return ret[:len(ar1)]
+        return ret[: len(ar1)]
     else:
         return ret[rev_idx]
 
@@ -414,11 +420,15 @@ def intersect1d_pytorch(ar1, ar2, assume_unique=False, return_indices=False):
     if not assume_unique:
         if return_indices:
             ar1, inv_ind1 = torch.unique(ar1, return_inverse=True)
-            perm = torch.arange(inv_ind1.size(0), dtype=inv_ind1.dtype, device=inv_ind1.device)
+            perm = torch.arange(
+                inv_ind1.size(0), dtype=inv_ind1.dtype, device=inv_ind1.device
+            )
             inverse, perm = inv_ind1.flip([0]), perm.flip([0])
             ind1 = inverse.new_empty(ar1.size(0)).scatter_(0, inverse, perm)
             ar2, inv_ind2 = torch.unique(ar2, return_inverse=True)
-            perm = torch.arange(inv_ind2.size(0), dtype=inv_ind2.dtype, device=inv_ind2.device)
+            perm = torch.arange(
+                inv_ind2.size(0), dtype=inv_ind2.dtype, device=inv_ind2.device
+            )
             inverse, perm = inv_ind2.flip([0]), perm.flip([0])
             ind2 = inverse.new_empty(ar2.size(0)).scatter_(0, inverse, perm)
         else:
@@ -431,7 +441,7 @@ def intersect1d_pytorch(ar1, ar2, assume_unique=False, return_indices=False):
     aux = torch.cat((ar1, ar2))
     if return_indices:
         # aux_sort_indices = torch.argsort(aux)
-        aux_sort_indices = torch.from_numpy(np.argsort(to_array(aux), kind='mergesort'))
+        aux_sort_indices = torch.from_numpy(np.argsort(to_array(aux), kind="mergesort"))
         aux = aux[aux_sort_indices]
     else:
         aux, _ = aux.sort()
@@ -456,6 +466,7 @@ def intersect1d_pytorch(ar1, ar2, assume_unique=False, return_indices=False):
 #     if isinstance(x, torch.Tensor):
 #         return torch.allclose(x.detach().cpu(), y.detach().cpu(), rtol, atol, equal_nan)
 #     elif isinstance(x,)
+
 
 def numel(x):
     if isinstance(x, torch.Tensor):

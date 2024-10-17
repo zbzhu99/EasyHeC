@@ -32,15 +32,16 @@ class SpaceExplorer(nn.Module):
         loguru.logger.info(f"Auto detect ckpt_path {ckpt_path}")
 
         ckpt = torch.load(ckpt_path, "cpu")
-        self.history_dof6 = ckpt['model']['history_ops']
+        self.history_dof6 = ckpt["model"]["history_ops"]
         self.dummy = nn.Parameter(torch.zeros(1))
         self.sk = SAPIENKinematicsModelStandalone(self.cfg.urdf_path)
         if self.cfg.self_collision_check.enable:
-            self.pymp_planner = Planner(self.cfg.urdf_path,
-                                        user_joint_names=None,
-                                        ee_link_name=self.cfg.move_group,
-                                        srdf=self.cfg.srdf_path,
-                                        )
+            self.pymp_planner = Planner(
+                self.cfg.urdf_path,
+                user_joint_names=None,
+                ee_link_name=self.cfg.move_group,
+                srdf=self.cfg.srdf_path,
+            )
         if self.cfg.collision_check.enable:
             self.planner = CollisionChecker(self.cfg)
         if self.cfg.max_dist_constraint.enable:
@@ -58,7 +59,7 @@ class SpaceExplorer(nn.Module):
         history_dof6 = self.history_dof6
         keep = ~(history_dof6 == 0).all(dim=1)
         history_dof6 = history_dof6[keep]
-        history_dof6 = history_dof6[self.cfg.start:]
+        history_dof6 = history_dof6[self.cfg.start :]
         engine = sapien.Engine()
 
         scene = engine.create_scene()
@@ -83,9 +84,9 @@ class SpaceExplorer(nn.Module):
         width, height = self.cfg.width, self.cfg.height
         K = np.array(self.cfg.K)
         history_Tc_c2b = utils_3d.se3_exp_map(history_dof6).permute(0, 2, 1).numpy()
-        history_Tc_c2b, _ = random_choice(history_Tc_c2b,
-                                          size=self.cfg.sample,
-                                          dim=0, replace=False)
+        history_Tc_c2b, _ = random_choice(
+            history_Tc_c2b, size=self.cfg.sample, dim=0, replace=False
+        )
         history_cam_poses = np.linalg.inv(history_Tc_c2b)
         variances = []
         n_self_collision = 0
@@ -99,7 +100,11 @@ class SpaceExplorer(nn.Module):
         for qpos_idx in tqdm.trange(qposes.shape[0]):
             vis3d.set_scene_id(qpos_idx)
             qpos = qposes[qpos_idx]
-            qpos = [0] * self.cfg.qpos_choices_pad_left + qpos.tolist() + [0] * self.cfg.qpos_choices_pad_right
+            qpos = (
+                [0] * self.cfg.qpos_choices_pad_left
+                + qpos.tolist()
+                + [0] * self.cfg.qpos_choices_pad_right
+            )
             robot.set_qpos(np.array(qpos, dtype=np.float32))
             vis3d.add_xarm(qpos)
             if self.cfg.self_collision_check.enable and self.total_cfg.use_xarm is True:
@@ -108,12 +113,20 @@ class SpaceExplorer(nn.Module):
                     variances.append(0)
                     n_self_collision += 1
                     continue
-            if self.cfg.max_dist_constraint.enable is True and self.total_cfg.use_xarm is True:
-                vis3d.add_spheres(self.max_dist_center, radius=self.cfg.max_dist_constraint.max_dist)
+            if (
+                self.cfg.max_dist_constraint.enable is True
+                and self.total_cfg.use_xarm is True
+            ):
+                vis3d.add_spheres(
+                    self.max_dist_center, radius=self.cfg.max_dist_constraint.max_dist
+                )
                 exceed_max_dist_constraint = False
                 for link in range(len(self.sk.robot.get_links())):
                     pq = self.sk.compute_forward_kinematics(qpos, link)
-                    if np.linalg.norm(pq.p - self.max_dist_center) > self.cfg.max_dist_constraint.max_dist:
+                    if (
+                        np.linalg.norm(pq.p - self.max_dist_center)
+                        > self.cfg.max_dist_constraint.max_dist
+                    ):
                         exceed_max_dist_constraint = True
                         break
                 if exceed_max_dist_constraint:
@@ -121,13 +134,17 @@ class SpaceExplorer(nn.Module):
                     n_exceed_max_dist += 1
                     continue
             if self.cfg.collision_check.enable and self.total_cfg.use_xarm is True:
-                curr_qpos = dps['qpos'][-1].cpu().numpy()
+                curr_qpos = dps["qpos"][-1].cpu().numpy()
                 pad_qpos = np.zeros([self.planner.robot.dof - curr_qpos.shape[0]])
                 curr_qpos = np.concatenate([curr_qpos, pad_qpos])
                 self.planner.robot.set_qpos(curr_qpos)
                 timestep = self.cfg.collision_check.timestep
-                code, result = self.planner.move_to_qpos(qpos, time_step=timestep, use_point_cloud=True,
-                                                         planning_time=self.cfg.collision_check.planning_time)
+                code, result = self.planner.move_to_qpos(
+                    qpos,
+                    time_step=timestep,
+                    use_point_cloud=True,
+                    planning_time=self.cfg.collision_check.planning_time,
+                )
                 if code != 0:
                     n_collision += 1
                     vis3d.add_point_cloud(pts_base)
@@ -136,28 +153,35 @@ class SpaceExplorer(nn.Module):
                 else:
                     plan_results[qpos_idx] = result
             elif self.total_cfg.use_xarm is False:
-                rest_pose = np.array( ## Avoid achieving franka emika panda joint limits, so use fractioning
-                                        [5.928617003472516e-05,
-                                        -0.7848036409260933,
-                                        -0.000308854746172659,
-                                        -2.357726806912310,
-                                        -0.00011798564528483742,
-                                        1.570464383098814,
-                                        0.7852387161304554,
-                                        0.3,
-                                        0.3]
-                                    )
+                rest_pose = np.array(  ## Avoid achieving franka emika panda joint limits, so use fractioning
+                    [
+                        5.928617003472516e-05,
+                        -0.7848036409260933,
+                        -0.000308854746172659,
+                        -2.357726806912310,
+                        -0.00011798564528483742,
+                        1.570464383098814,
+                        0.7852387161304554,
+                        0.3,
+                        0.3,
+                    ]
+                )
                 target = (np.array(qpos) - rest_pose) / 2.3 + rest_pose
-                plan_results[qpos_idx] = {"position":target.tolist()}
+                plan_results[qpos_idx] = {"position": target.tolist()}
             masks = []
-            for cam_pose in tqdm.tqdm(history_cam_poses, leave=False, disable="PYCHARM_HOSTED" in os.environ):
-                rendered_mask = render_api.nvdiffrast_parallel_render_xarm_api(self.cfg.urdf_path,
-                                                                               np.linalg.inv(cam_pose),
-                                                                               qpos[:7] + [0, 0],
-                                                                               height, width,
-                                                                               to_array(K),
-                                                                               robot_type = 0,
-                                                                               return_ndarray=False)
+            for cam_pose in tqdm.tqdm(
+                history_cam_poses, leave=False, disable="PYCHARM_HOSTED" in os.environ
+            ):
+                rendered_mask = render_api.nvdiffrast_parallel_render_xarm_api(
+                    self.cfg.urdf_path,
+                    np.linalg.inv(cam_pose),
+                    qpos[:6] + [0, 0],
+                    height,
+                    width,
+                    to_array(K),
+                    # robot_type = 0,
+                    return_ndarray=False,
+                )
                 vis3d.add_image(rendered_mask)
                 masks.append(rendered_mask)
             masks = torch.stack(masks)
@@ -178,13 +202,14 @@ class SpaceExplorer(nn.Module):
         rotx = utils_3d.Rt_to_pose(rotx)
         tid = top_ids[0]
         if variances[tid] > 0:
-            vis3d.add_xarm(qposes[tid], Tw_w2B=rotx, name=f'xarm')
+            vis3d.add_xarm(qposes[tid], Tw_w2B=rotx, name=f"xarm")
             vis3d.increase_scene_id()
             next_qpos = qposes[tid]
             variance = variances[tid]
         else:
             raise RuntimeError(
-                "no valid qpos found! Consider to increase the number of sampled qpos, or increase the max_dist.")
+                "no valid qpos found! Consider to increase the number of sampled qpos, or increase the max_dist."
+            )
 
         outputs = {
             "qpos": next_qpos,
@@ -193,26 +218,34 @@ class SpaceExplorer(nn.Module):
             "var_max": variances[variances > 0].max(),
             "var_min": variances[variances > 0].min(),
             "var_mean": variances[variances > 0].mean(),
-            "plan_result": plan_results[tid.item()]
+            "plan_result": plan_results[tid.item()],
         }
         return outputs, {}
 
     def sample_qposes(self, dof, total_dof):
-        joint_limits = [self.pymp_planner.robot.joint_limits[0][:dof],
-                        self.pymp_planner.robot.joint_limits[1][:dof]]
-        if 'PYCHARM_HOSTED' in os.environ and self.total_cfg.deterministic:
+        joint_limits = [
+            self.pymp_planner.robot.joint_limits[0][:dof],
+            self.pymp_planner.robot.joint_limits[1][:dof],
+        ]
+        if "PYCHARM_HOSTED" in os.environ and self.total_cfg.deterministic:
             np.random.seed(0)
 
-        random_qpos = np.random.uniform(joint_limits[0], joint_limits[1], [self.cfg.n_sample_qposes, dof])
+        random_qpos = np.random.uniform(
+            joint_limits[0], joint_limits[1], [self.cfg.n_sample_qposes, dof]
+        )
         pad_qpos = np.zeros([random_qpos.shape[0], total_dof - dof])
         random_qpos = np.concatenate([random_qpos, pad_qpos], axis=1)
         return random_qpos
 
     def compute_max_dist_center(self):
         pts = []
-        qposes = np.random.uniform(*self.pymp_planner.robot.joint_limits,
-                                   size=(self.cfg.max_dist_constraint.max_dist_center_compute_n,
-                                         self.sk.robot.dof))
+        qposes = np.random.uniform(
+            *self.pymp_planner.robot.joint_limits,
+            size=(
+                self.cfg.max_dist_constraint.max_dist_center_compute_n,
+                self.sk.robot.dof,
+            ),
+        )
         loguru.logger.info("computing max dist center")
         for qpos in tqdm.tqdm(qposes):
             ret = self.pymp_planner.robot.computeCollisions(qpos)

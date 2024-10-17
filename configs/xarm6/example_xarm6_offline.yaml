@@ -1,0 +1,47 @@
+model:
+  meta_architecture: "RBSolver"
+  rbsolver:
+#    you may need to change this.
+    init_Tc_c2b:
+      [
+      [-7.6604444e-01,  6.4278764e-01, -1.0581534e-08,  2.3280859e-01],
+      [ 3.2139379e-01,  3.8302216e-01, -8.6602545e-01, -3.2404404e-02],
+      [-5.5667043e-01, -6.6341400e-01, -4.9999994e-01,  1.3561261e+00],
+      [ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00,  1.0000000e+00],
+      ]
+    mesh_paths: [
+      "assets/xarm_description/meshes/xarm6/visual/base.stl",
+      "assets/xarm_description/meshes/xarm6/visual/link1.stl",
+      "assets/xarm_description/meshes/xarm6/visual/link2.stl",
+      "assets/xarm_description/meshes/xarm6/visual/link3.stl",
+      "assets/xarm_description/meshes/xarm6/visual/link4.stl",
+      "assets/xarm_description/meshes/xarm6/visual/link5.stl",
+      # "assets/xarm_description/meshes/xarm6/visual/link6.stl",
+    ]
+    H: 1080 # you may need to change this according to the image size.
+    W: 1920
+datasets:
+  train: ("xarm6_real/xarm6_offline/example",)
+  test: "xarm6_real/xarm6_offline/example"
+
+solver:
+  log_interval: 1
+  trainer: "rbsolver"
+  explore_iters: 10 # the number of iterations for exploration
+  num_epochs: 1000 # the number of iterations for optimization
+  max_lr: 0.003 # the learning rate for optimization
+  batch_size: 100 # a large number to make sure all the images are in one batch
+  save_freq: 20
+  val_freq: 20
+  save_every: True
+  save_mode: iteration
+dataset:
+  xarm_real:
+    use_links: [1,2,3,4,5,6]
+    urdf_path: "assets/xarm6_with_gripper.urdf"
+input:
+  shuffle: False
+dataloader:
+  pin_memory: True
+test:
+  batch_size: 100

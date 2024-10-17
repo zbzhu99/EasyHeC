@@ -174,7 +174,6 @@ class MoveGroupPythonInterfaceTutorial(object):
         current_joints = move_group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
 
-  
     def go_to_rest_pose(self):
         """
         Set the robot to the rest pose
@@ -183,13 +182,15 @@ class MoveGroupPythonInterfaceTutorial(object):
         # In practice, you should use the class variables directly unless you have a good
         # reason not to.
         move_group = self.move_group
-        joint_goal = [5.928617003472516e-05,
-                    -0.7848036409260933,
-                    -0.000308854746172659,
-                    -2.357726806912310,
-                    -0.00011798564528483742,
-                    1.570464383098814,
-                    0.7852387161304554]
+        joint_goal = [
+            5.928617003472516e-05,
+            -0.7848036409260933,
+            -0.000308854746172659,
+            -2.357726806912310,
+            -0.00011798564528483742,
+            1.570464383098814,
+            0.7852387161304554,
+        ]
         # The go command can be called with joint values, poses, or without any
         # parameters if you have already set the pose or joint target for the group
         move_group.go(joint_goal, wait=True)
@@ -202,20 +203,19 @@ class MoveGroupPythonInterfaceTutorial(object):
         # For testing:
         current_joints = move_group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
-    
-    def set_servo_angle(self, servo_id = None, angle = 0, is_radian = True, wait = True):
+
+    def set_servo_angle(self, servo_id=None, angle=0, is_radian=True, wait=True):
         """
         Set the angle of the specific servo_id
         """
-        #logger.info("The robot 's {servo_id} is moved to {angle}".format(servo_id = servo_id, angle = angle))
+        # logger.info("The robot 's {servo_id} is moved to {angle}".format(servo_id = servo_id, angle = angle))
         move_group = self.move_group
         if servo_id is None:
-            
             if not isinstance(angle, list):
                 joint_goal = angle.tolist()[:7]
             else:
                 joint_goal = angle[:7]
-            assert(len(joint_goal) == 7 or (len(joint_goal) == 9))
+            assert len(joint_goal) == 7 or (len(joint_goal) == 9)
             # The go command can be called with joint values, poses, or without any
             # parameters if you have already set the pose or joint target for the group
             move_group.go(joint_goal[:7], wait=True)
@@ -234,22 +234,21 @@ class MoveGroupPythonInterfaceTutorial(object):
             # For testing:
         current_joints = move_group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
-        
-    def get_servo_angle(self, servo_id = None, is_radian = True):
+
+    def get_servo_angle(self, servo_id=None, is_radian=True):
         if servo_id is not None:
             assert servo_id >= 1 and servo_id <= 7
         if servo_id is None:
             return 0, self.move_group.get_current_joint_values()
-            
+
         else:
             return 0, self.move_group.get_current_joint_values()[servo_id]
 
-
     def get_joint_states(self):
         move_group = self.move_group
-        return  move_group.get_current_joint_values()
+        return move_group.get_current_joint_values()
 
-    def go_to_pose_goal(self, x = 0.54093030529644, y = 0.25, z = 0.67):
+    def go_to_pose_goal(self, x=0.54093030529644, y=0.25, z=0.67):
         # Copy class variables to local variables to make the web tutorials more clear.
         # In practice, you should use the class variables directly unless you have a good
         # reason not to.
@@ -268,8 +267,10 @@ class MoveGroupPythonInterfaceTutorial(object):
         pose_goal.orientation.z = -0.27939
         pose_goal.orientation.w = 0.66987
         pose_goal.position.x = x
-        pose_goal.position.y = y + 0.098345534 + 0.10 ## 0.098345534 is the offset: the dist between joint 8 and true end effector
-        pose_goal.position.z = z 
+        pose_goal.position.y = (
+            y + 0.098345534 + 0.10
+        )  ## 0.098345534 is the offset: the dist between joint 8 and true end effector
+        pose_goal.position.z = z
         move_group.set_pose_target(pose_goal)
 
         ## Now, we call the planner to compute the plan and execute it.
@@ -288,7 +289,6 @@ class MoveGroupPythonInterfaceTutorial(object):
         # we use the class variable rather than the copied state variable
         current_pose = self.move_group.get_current_pose().pose
 
-
         time.sleep(1)
         move_group = self.move_group
         pose_goal = geometry_msgs.msg.Pose()
@@ -297,21 +297,20 @@ class MoveGroupPythonInterfaceTutorial(object):
         pose_goal.orientation.z = -0.27939
         pose_goal.orientation.w = 0.66987
         pose_goal.position.x = x
-        pose_goal.position.y = y + 0.098345534 ## 0.098345534 is the offset: the dist between joint 8 and true end effector
-        pose_goal.position.z = z 
+        pose_goal.position.y = (
+            y + 0.098345534
+        )  ## 0.098345534 is the offset: the dist between joint 8 and true end effector
+        pose_goal.position.z = z
         move_group.set_pose_target(pose_goal)
         success = move_group.go(wait=True)
         move_group.stop()
         move_group.clear_pose_targets()
 
-
-
-
         return all_close(pose_goal, current_pose, 0.01)
-    
+
 
 if __name__ == "__main__":
     import numpy as np
+
     demo = MoveGroupPythonInterfaceTutorial()
     demo.go_to_pose_goal()
-    
