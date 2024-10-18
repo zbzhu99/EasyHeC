@@ -36,8 +36,8 @@ class MultiRealSenseCamera:
             )
             self.configs[i].enable_stream(
                 rs.stream.color,
-                1920,
-                1080,
+                640,
+                480,
                 rs.format.rgb8,
                 self.fps,
             )
@@ -166,7 +166,7 @@ def save_k(multi_camera, base_dir):
     np.savetxt(qpos_filename, intrinsic)
 
 
-base_dir = Path("data/xarm6_offline/example")
+base_dir = Path("data/xarm6_offline/example_right_back_test")
 os.makedirs(base_dir, exist_ok=True)
 multi_camera = MultiRealSenseCamera()
 speed = math.radians(30)
@@ -185,11 +185,11 @@ arm.set_gripper_enable(True)
 arm.set_mode(2)
 arm.set_state(0)
 # 自动化拍摄和保存数据
-num_shots = 6  # 拍摄次数
+num_shots = 5  # 拍摄次数
 
 for i in range(num_shots):
     code, (qpos, qvel, qeff) = arm.get_joint_states()
-    # qpos = np.array(qpos[:6])
+    qpos.append(0)
     _, gripper_pos = arm.get_gripper_position()
     save_colors(multi_camera.undistorted_rgbd(), base_dir, i)
     save_qpos(qpos, base_dir, i)

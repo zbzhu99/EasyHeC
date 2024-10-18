@@ -2,13 +2,19 @@ model:
   meta_architecture: "RBSolver"
   rbsolver:
 #    you may need to change this.
-    init_Tc_c2b:
-      [
-      [-7.6604444e-01,  6.4278764e-01, -1.0581534e-08,  2.3280859e-01],
-      [ 3.2139379e-01,  3.8302216e-01, -8.6602545e-01, -3.2404404e-02],
-      [-5.5667043e-01, -6.6341400e-01, -4.9999994e-01,  1.3561261e+00],
-      [ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00,  1.0000000e+00],
-      ]
+#    previous version
+#     [
+#       [ 8.6602533e-01,  5.0000000e-01,  3.2727594e-09, -3.3480757e-01],
+#       [ 2.5000000e-01, -4.3301266e-01, -8.6602539e-01,  7.6554433e-02],
+#       [-4.3301272e-01,  7.5000000e-01, -5.0000000e-01,  1.2674038e+00],
+#       [ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00,  1.0000000e+00]
+#     ]
+    init_Tc_c2b: [
+      [-1.0000000e+00, -8.7422777e-08,  1.5785288e-24,  2.0000000e-01],
+      [ 3.8213709e-15, -4.3711388e-08, -1.0000000e+00,  3.0000001e-01],
+      [ 8.7422777e-08, -1.0000000e+00,  4.3711388e-08,  8.9999998e-01],
+      [ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00,  1.0000000e+00]
+    ]
     mesh_paths: [
       "assets/xarm_description/meshes/xarm6/visual/base.stl",
       "assets/xarm_description/meshes/xarm6/visual/link1.stl",
@@ -16,13 +22,16 @@ model:
       "assets/xarm_description/meshes/xarm6/visual/link3.stl",
       "assets/xarm_description/meshes/xarm6/visual/link4.stl",
       "assets/xarm_description/meshes/xarm6/visual/link5.stl",
-      # "assets/xarm_description/meshes/xarm6/visual/link6.stl",
+      "assets/xarm_description/meshes/xarm6/visual/link6.stl",
+      "assets/xarm_gripper/meshes/base_link.STL",
+      "assets/xarm_gripper/meshes/left_finger_black.glb",
+      "assets/xarm_gripper/meshes/right_finger_black.glb",
     ]
-    H: 1080 # you may need to change this according to the image size.
-    W: 1920
+    H: 480 # you may need to change this according to the image size.
+    W: 640
 datasets:
-  train: ("xarm6_real/xarm6_offline/example",)
-  test: "xarm6_real/xarm6_offline/example"
+  train: ("xarm6_real/xarm6_offline/example_right_back",)
+  test: "xarm6_real/xarm6_offline/example_right_back"
 
 solver:
   log_interval: 1
@@ -37,7 +46,7 @@ solver:
   save_mode: iteration
 dataset:
   xarm_real:
-    use_links: [1,2,3,4,5,6]
+    use_links: [1,2,3,4,5,6,7,9,10,11]
     urdf_path: "assets/xarm6_with_gripper.urdf"
 input:
   shuffle: False

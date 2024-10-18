@@ -174,13 +174,13 @@ def nvdiffrast_render_xarm_api(
     names = [link.name for link in sk.robot.get_links()]
     poses = []
     meshes = []
-    num = 7
-    for i in range(num):
+    xarm_link_ids = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11]
+    for i in xarm_link_ids:
         pose = (
             robot_pose
-            @ sk.compute_forward_kinematics(qpos, i + 1).to_transformation_matrix()
+            @ sk.compute_forward_kinematics(qpos, i).to_transformation_matrix()
         )
-        mesh = xarm_meshes[names[i + 1]]
+        mesh = xarm_meshes[names[i]]
         meshes.append(mesh)
         poses.append(pose)
     mask = nvdiffrast_render_meshes_api(
@@ -219,13 +219,13 @@ def nvdiffrast_parallel_render_xarm_api(
     names = [link.name for link in sk.robot.get_links()]
     poses = []
     meshes = []
-    num = 7
-    for i in range(num):
+    xarm_link_ids = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11]
+    for i in range(xarm_link_ids):
         pose = (
             robot_pose
-            @ sk.compute_forward_kinematics(qpos, i + 1).to_transformation_matrix()
+            @ sk.compute_forward_kinematics(qpos, i).to_transformation_matrix()
         )
-        mesh = xarm_meshes[names[i + 1]]
+        mesh = xarm_meshes[names[i]]
         meshes.append(mesh)
         poses.append(pose)
     mask = nvdiffrast_parallel_render_meshes_api(

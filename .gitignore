@@ -25,3 +25,4 @@ third_party/detectron2/detectron2.egg-info
 .vscode/
 assets/offline_example
 *.pth
+*.txt
