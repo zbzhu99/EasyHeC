@@ -11,6 +11,7 @@ from easyhec.utils.utils_3d import se3_log_map, se3_exp_map
 from easyhec.utils.vis3d_ext import Vis3D
 
 from loguru import logger
+import cv2
 
 
 class RBSolver(nn.Module):
@@ -77,7 +78,16 @@ class RBSolver(nn.Module):
                 all_link_si.append(si)
             all_link_si = torch.stack(all_link_si).sum(0).clamp(max=1)
             all_frame_all_link_si.append(all_link_si)
-            loss = torch.sum((all_link_si - masks_ref[bid].float()) ** 2)
+
+            # Resize masks_ref[bid] to match the size of all_link_si
+            mask_ref_resized = cv2.resize(
+                masks_ref[bid].cpu().numpy(),
+                (all_link_si.shape[1], all_link_si.shape[0]),
+                interpolation=cv2.INTER_NEAREST,
+            )
+            mask_ref_resized = torch.from_numpy(mask_ref_resized).to(all_link_si.device)
+
+            loss = torch.sum((all_link_si - mask_ref_resized.float()) ** 2)
             losses.append(loss)
 
             # # Save all_link_si and masks_ref[bid] as png images

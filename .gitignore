@@ -26,3 +26,4 @@ third_party/detectron2/detectron2.egg-info
 assets/offline_example
 *.pth
 *.txt
+*.png

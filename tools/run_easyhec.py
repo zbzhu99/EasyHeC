@@ -3,12 +3,11 @@ import os.path as osp
 import random
 import sys
 import warnings
-
 import loguru
 import numpy as np
 import torch
 import torch.multiprocessing
-from dl_ext.timer import EvalTime
+from pathlib import Path
 from easyhec.config import cfg_xarm, cfg_franka
 from easyhec.engine.defaults import default_argument_parser
 from easyhec.trainer.build import build_trainer
@@ -64,11 +63,10 @@ def main():
 
     cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    assert args.config_file.endswith(".yaml")
     if cfg.output_dir == "":
-        assert args.config_file.startswith("configs") and args.config_file.endswith(
-            ".yaml"
-        )
-        cfg.output_dir = args.config_file[:-5].replace("configs", "models")
+        cfg.output_dir = str(Path(args.config_file).parent / "models")
+
     if "PYCHARM_HOSTED" in os.environ:
         loguru.logger.warning("fix random seed!!!!")
         cfg.dataloader.num_workers = 0
@@ -112,7 +110,10 @@ def main():
 
     plt_utils.image_grid(preds[0]["error_maps"].cpu().numpy())
     print("If the shown error map is small, the following result is good to use.")
-    print("Result Tc_c2b (opencv convention)", preds[0]["tsfm"])
+
+    output_path = os.path.join(output_dir[:-6] + "in.txt")
+    with open(output_path, "w") as f:
+        print("Result Tc_c2b (opencv convention)\n", preds[0]["tsfm"], file=f)
 
 
 if __name__ == "__main__":
