@@ -12,7 +12,6 @@ class NVDiffrastRenderer:
         """
         image_size: H,W
         """
-        # self.
         self.H, self.W = image_size
         self.resolution = image_size
         blender2opencv = (

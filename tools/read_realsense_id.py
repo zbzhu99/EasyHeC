@@ -31,11 +31,14 @@ def capture_and_save_images(serial_number):
         config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 
     # Start streaming
-    pipeline.start(config)
+    cfg = pipeline.start(config)
+    depth_scale = 1 / cfg.get_device().first_depth_sensor().get_depth_scale()
+    print(f"depth_scale: {depth_scale}")
 
     try:
         # Wait for a coherent pair of frames
-        frames = pipeline.wait_for_frames()
+        for _ in range(10):
+            frames = pipeline.wait_for_frames()
         color_frame = frames.get_color_frame()
         if not color_frame:
             return

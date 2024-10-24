@@ -27,3 +27,8 @@ assets/offline_example
 *.pth
 *.txt
 *.png
+tools/test_8.py
+tools/read_realsense_id.py
+tools/test_mplib.py
+pyrightconfig.json
+tools/read_intrinsic.py

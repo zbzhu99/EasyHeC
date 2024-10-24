@@ -1,8 +1,7 @@
 import argparse
 import os
 import cv2
-import random
-import re
+import mplib
 import numpy as np
 import time
 import math
@@ -218,7 +217,21 @@ def save_k(multi_camera, base_dir, campos_list):
         np.savetxt(qpos_filename, intrinsic)
 
 
+INITIAL_ARM_JOINT_POS = [0.8, -36.7, -22.6, -0.1, 58.4, 0.3, 0]
+speed = 30
+
 if __name__ == "__main__":
+    print("Creating mplib planner")
+    urdf_path = "./assets/xarm6_with_gripper.urdf"
+    srdf_path = "./assets/xarm6_with_gripper.srdf"
+    planner = mplib.Planner(
+        urdf=urdf_path,
+        srdf=srdf_path,
+        move_group="link_tcp",
+        joint_vel_limits=np.ones(6) * 0.9,
+        joint_acc_limits=np.ones(6) * 0.9,
+    )
+
     current_datetime = time.strftime("%Y%m%d_%H%M%S")
     base_dir = Path(f"./data/xarm6_offline/{current_datetime}")
     os.makedirs(base_dir, exist_ok=True)
@@ -237,18 +250,55 @@ if __name__ == "__main__":
     arm.motion_enable(enable=True)
     arm.clean_error()
     arm.set_gripper_enable(True)
-    arm.set_mode(2)
+    arm.set_gripper_position(800, wait=True)
+    arm.set_gripper_enable(False)
+    arm.set_mode(0)
     arm.set_state(0)
+    arm.set_servo_angle(
+        angle=INITIAL_ARM_JOINT_POS, speed=30, is_radian=False, wait=True
+    )
 
     num_shots = 18
 
+    calibration_dir = Path("./xarm6_calib_qpos")
     for i in range(num_shots):
-        input("Press Enter to continue...")
-        code, (qpos, qvel, qeff) = arm.get_joint_states()
-        qpos.append(0)
+        qpos_file = calibration_dir / f"00000{i}.txt"
+
+        if qpos_file.exists():
+            
+            # qpos = np.loadtxt(qpos_file)
+            # arm.set_servo_angle(angle=qpos.tolist()[:-2], is_radian=True, wait=True, speed=speed)
+
+            qpos = np.loadtxt(qpos_file)
+            current_qpos = np.concatenate(
+                [np.array(arm.get_servo_angle(is_radian=True)[1])[:-1], qpos[-2:]]
+            )
+            result = planner.plan_qpos_to_qpos(
+                [qpos],
+                current_qpos,
+                time_step=0.1,
+            )
+            planned_qpos_traj = np.array(result["position"])
+            planned_qpos_traj = np.concatenate(
+                [planned_qpos_traj, np.zeros((planned_qpos_traj.shape[0], 1))],
+                axis=-1,
+            )
+            for qpos in planned_qpos_traj:
+                arm.set_servo_angle(angle=qpos.tolist(), is_radian=True, wait=True, speed=speed)
+                time.sleep(0.1)
+
+            time.sleep(3)  # wait for the arm to be stable
+        else:
+            print(f"canot find the qpos file: {qpos_file}")
+            continue
         _, gripper_pos = arm.get_gripper_position()
         save_colors(multi_camera.undistorted_rgbd(), base_dir, i, campos_list)
         save_qpos(multi_camera.undistorted_rgbd(), qpos, base_dir, i, campos_list)
 
     arm.set_mode(0)
     arm.set_state(0)
+
+    # get by bash script
+    print("--------------------------------")
+    print("Generated data path:")
+    print(current_datetime)

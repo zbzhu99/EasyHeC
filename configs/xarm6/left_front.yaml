@@ -1,14 +1,6 @@
 model:
   meta_architecture: "RBSolver"
   rbsolver:
-#    you may need to change this.
-#    previous version
-#     [
-#       [ 8.6602533e-01,  5.0000000e-01,  3.2727594e-09, -3.3480757e-01],
-#       [ 2.5000000e-01, -4.3301266e-01, -8.6602539e-01,  7.6554433e-02],
-#       [-4.3301272e-01,  7.5000000e-01, -5.0000000e-01,  1.2674038e+00],
-#       [ 0.0000000e+00,  0.0000000e+00,  0.0000000e+00,  1.0000000e+00]
-#     ]
     init_Tc_c2b: [
       [ 9.9619466e-01,  8.7155737e-02, -2.8481217e-10, -3.0757397e-01],
       [ 5.6022625e-02, -6.4034164e-01, -7.6604444e-01,  2.0043626e-01],
@@ -30,8 +22,8 @@ model:
     H: 480 # you may need to change this according to the image size.
     W: 640
 datasets:
-  train: ("xarm6_real/xarm6_offline/20241020_164336/right_front",)
-  test: "xarm6_real/xarm6_offline/20241020_164336/right_front"
+  train: ("xarm6_real/xarm6_offline/20241022_171204/left_front",)
+  test: "xarm6_real/xarm6_offline/20241022_171204/left_front"
 
 solver:
   log_interval: 1

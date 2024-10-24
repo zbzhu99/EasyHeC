@@ -12,6 +12,7 @@ from easyhec.utils.vis3d_ext import Vis3D
 
 from loguru import logger
 import cv2
+import torch.nn.functional as F
 
 
 class RBSolver(nn.Module):
@@ -61,6 +62,14 @@ class RBSolver(nn.Module):
         link_poses = dps["link_poses"]
         K = dps["K"][0]
 
+        ori_H, ori_W = dps["rgb"].shape[-3], dps["rgb"].shape[-2]
+        # if resize the image, we need to scale the intrinsics
+        if ori_H != self.H or ori_W != self.W:
+            K[0, 0] *= self.W / ori_W
+            K[1, 1] *= self.H / ori_H
+            K[0, 2] *= self.W / ori_W
+            K[1, 2] *= self.H / ori_H
+
         batch_size = masks_ref.shape[0]
         for bid in range(batch_size):
             all_link_si = []
@@ -80,25 +89,26 @@ class RBSolver(nn.Module):
             all_frame_all_link_si.append(all_link_si)
 
             # Resize masks_ref[bid] to match the size of all_link_si
-            mask_ref_resized = cv2.resize(
-                masks_ref[bid].cpu().numpy(),
-                (all_link_si.shape[1], all_link_si.shape[0]),
-                interpolation=cv2.INTER_NEAREST,
+            mask_ref_resized = F.interpolate(
+                masks_ref[bid].unsqueeze(0).unsqueeze(0),
+                size=(all_link_si.shape[0], all_link_si.shape[1]),
+                mode="nearest",
             )
-            mask_ref_resized = torch.from_numpy(mask_ref_resized).to(all_link_si.device)
+            mask_ref_resized = mask_ref_resized.squeeze(0).squeeze(0)
 
             loss = torch.sum((all_link_si - mask_ref_resized.float()) ** 2)
             losses.append(loss)
 
-            # # Save all_link_si and masks_ref[bid] as png images
-            # import torchvision.utils as vutils
-            # import os
-            # os.makedirs('output_images', exist_ok=True)
-            # vutils.save_image(all_link_si, f'output_images/all_link_si_{bid}.png')
-            # vutils.save_image(masks_ref[bid].float(), f'output_images/mask_ref_{bid}.png')
-
         loss = torch.stack(losses).mean()
         all_frame_all_link_si = torch.stack(all_frame_all_link_si)
+
+        masks_ref = F.interpolate(
+            masks_ref.unsqueeze(1),
+            size=(all_frame_all_link_si.shape[1], all_frame_all_link_si.shape[2]),
+            mode="nearest",
+        )
+        masks_ref = masks_ref.squeeze(1)
+
         output = {
             "rendered_masks": all_frame_all_link_si,
             "ref_masks": masks_ref,

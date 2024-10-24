@@ -65,7 +65,11 @@ def main():
     cfg.merge_from_list(args.opts)
     assert args.config_file.endswith(".yaml")
     if cfg.output_dir == "":
-        cfg.output_dir = str(Path(args.config_file).parent / "models")
+        path_list = cfg.datasets.train
+        for dataset_name in path_list:
+            items = dataset_name.split("/")[1:]
+            data_dir = osp.join("data", "/".join(items),"models")
+            cfg.output_dir = str(data_dir)
 
     if "PYCHARM_HOSTED" in os.environ:
         loguru.logger.warning("fix random seed!!!!")
