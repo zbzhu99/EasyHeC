@@ -252,57 +252,23 @@ if __name__ == "__main__":
     arm.set_gripper_enable(True)
     arm.set_gripper_position(800, wait=True)
     arm.set_gripper_enable(False)
-    arm.set_mode(0)
+    arm.set_mode(2)
     arm.set_state(0)
     arm.set_servo_angle(
         angle=INITIAL_ARM_JOINT_POS, speed=30, is_radian=False, wait=True
     )
 
-    num_shots = 18
-
-    calibration_dir = Path("./xarm6_calib_qpos")
-    for i in range(num_shots):
+    num_shots = 1
+    calibration_dir = Path("./xarm6_calib_qpos_test")
+    os.makedirs(calibration_dir, exist_ok=True)
+    
+    for i in range(13,18):
+        input("Press Enter to take a picture")
         qpos_file = calibration_dir / f"00000{i}.txt"
-
-        if qpos_file.exists():
-            # qpos = np.loadtxt(qpos_file)
-            # arm.set_servo_angle(angle=qpos.tolist()[:-2], is_radian=True, wait=True, speed=speed)
-
-            qpos = np.loadtxt(qpos_file)
-            current_qpos = np.concatenate(
-                [np.array(arm.get_servo_angle(is_radian=True)[1])[:-1], qpos[-2:]]
-            )
-            result = planner.plan_qpos_to_qpos(
-                [qpos],
-                current_qpos,
-                time_step=0.1,
-            )
-            arm.set_mode(4)
-            arm.set_state(0)
-            planned_qvel_traj = np.concatenate(
-                [result["velocity"], np.zeros((result["velocity"].shape[0], 1))],
-                axis=-1,
-            )
-            for qvel in planned_qvel_traj:
-                arm.vc_set_joint_velocity(qvel,is_radian=True)
-                time.sleep(0.1)
-            
-            arm.set_mode(0)
-            arm.set_state(0)
-            
-            time.sleep(3)  # wait for the arm to be stable
-            
-        else:
-            print(f"canot find the qpos file: {qpos_file}")
-            continue
-        _, gripper_pos = arm.get_gripper_position()
-        save_colors(multi_camera.undistorted_rgbd(), base_dir, i, campos_list)
-        save_qpos(multi_camera.undistorted_rgbd(), qpos, base_dir, i, campos_list)
         
-    arm.set_mode(0)
-    arm.set_state(0)
+        code, (qpos,qvel,qeff) = arm.get_joint_states()
+        qpos.append(0)
+        with open(qpos_file, "w") as f:
+            for item in qpos:
+                f.write(f"{item}\n")
 
-    # get by bash script
-    print("--------------------------------")
-    print("Generated data path:")
-    print(current_datetime)
